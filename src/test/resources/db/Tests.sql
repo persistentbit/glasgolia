@@ -1,0 +1,3 @@
+-->>selectTest
+SELECT * FROM person;
+-->>

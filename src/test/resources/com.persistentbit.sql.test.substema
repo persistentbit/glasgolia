@@ -1,0 +1,113 @@
+@NameRemovePrefix(value = "S", type = NameType.table)
+@NameCamelToSnake
+@NameToUpper
+@DbImportExcludeTables("schema_history")
+package;
+import com.persistentbit.sql.annotations;
+
+
+
+
+case class Address {
+	street: String;
+	houseNumber: Integer;
+	busNumber: ?String;
+	postalcode: String;
+	city: String;
+	country: String;
+}
+
+<<
+This immutable value class contains the data for a record in the table 'COMPANY'.<br>
+Generated from the database on 2017-01-16T11:33:02.738<br>
+>>
+@Table
+case class SCompany {
+	@Key
+	@AutoGen
+	id: Integer;
+	adres: Address;
+}
+
+<<
+This immutable value class contains the data for a record in the table 'DB_UPDATE_TEST'.<br>
+Generated from the database on 2017-01-16T11:33:02.772<br>
+>>
+@Table
+case class SDbUpdateTest {
+	@Key
+	@AutoGen
+	id: Integer;
+	name: ?String;
+}
+
+<<
+This immutable value class contains the data for a record in the table 'INVOICE'.<br>
+Generated from the database on 2017-01-16T11:33:02.781<br>
+>>
+@Table
+case class SInvoice {
+	@Key
+	@AutoGen
+	id: Integer;
+	invoiceNummer: String;
+	fromCompanyId: Integer;
+	toCompanyId: Integer;
+}
+
+<<
+This immutable value class contains the data for a record in the table 'INVOICE_LINE'.<br>
+Generated from the database on 2017-01-16T11:33:02.793<br>
+>>
+@Table
+case class SInvoiceLine {
+	@Key
+	@AutoGen
+	id: Integer;
+	invoiceId: Integer;
+	product: ?String;
+}
+
+<<
+This immutable value class contains the data for a record in the table 'PERSON'.<br>
+Generated from the database on 2017-01-16T11:33:02.807<br>
+>>
+@Table
+case class SPerson {
+	@Key
+	@AutoGen
+	id: Integer;
+	userName: String;
+	password: String;
+	@NoPrefix
+	address: Address;
+}
+
+<<
+This immutable value class contains the data for a record in the table 'SCHEMA_HISTORY'.<br>
+Generated from the database on 2017-01-16T11:33:02.814<br>
+>>
+@Table
+case class SSchemaHistory {
+	createddate: DateTime;
+	packageName: String;
+	updateName: String;
+}
+
+<<
+This immutable value class contains the data for a record in the table 'SQLTEST_TABLE'.<br>
+Generated from the database on 2017-01-16T11:33:02.824<br>
+>>
+@Table
+case class SSqltestTable {
+	@Key
+	@AutoGen
+	id: Integer;
+	createdDate: DateTime;
+	moduleName: String;
+	className: String;
+	methodName: String;
+}
+
+
+
