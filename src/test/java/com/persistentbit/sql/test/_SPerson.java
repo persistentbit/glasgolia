@@ -8,8 +8,8 @@ package com.persistentbit.sql.test;
 import com.persistentbit.core.collections.PList;
 import com.persistentbit.core.result.Result;
 import com.persistentbit.core.tuples.Tuple2;
-import com.persistentbit.sql.staticsql.*;
-import com.persistentbit.sql.staticsql.expr.*;
+import com.persistentbit.glasgolia.jaql.*;
+import com.persistentbit.glasgolia.jaql.expr.*;
 
 import java.util.Optional;
 
@@ -94,7 +94,7 @@ public class _SPerson implements ETypeObject<SPerson> {
 		return object.withId((Integer) value);
 	}
 	public DbWork<SPerson> insert(SPerson newRow) {
-		return Insert.into(this,val(newRow)).withGeneratedKeys(_getAutoGenKey().get())
+		return Insert.into(this, val(newRow)).withGeneratedKeys(_getAutoGenKey().get())
 			.map(key -> _setAutoGenKey(newRow,key));
 	}
 	public DbWork<SPerson> selectById(Integer id) {

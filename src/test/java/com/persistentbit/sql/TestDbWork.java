@@ -2,10 +2,10 @@ package com.persistentbit.sql;
 
 import com.persistentbit.core.testing.TestCase;
 import com.persistentbit.core.testing.TestRunner;
-import com.persistentbit.sql.staticsql.Insert;
-import com.persistentbit.sql.staticsql.InsertWithGeneratedKeys;
-import com.persistentbit.sql.staticsql.Query;
-import com.persistentbit.sql.staticsql.expr.Sql;
+import com.persistentbit.glasgolia.jaql.Insert;
+import com.persistentbit.glasgolia.jaql.InsertWithGeneratedKeys;
+import com.persistentbit.glasgolia.jaql.Query;
+import com.persistentbit.glasgolia.jaql.expr.Sql;
 import com.persistentbit.sql.test.*;
 
 /**

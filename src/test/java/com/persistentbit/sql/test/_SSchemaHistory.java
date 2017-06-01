@@ -8,11 +8,11 @@ package com.persistentbit.sql.test;
 import com.persistentbit.core.collections.PList;
 import com.persistentbit.core.tuples.Tuple2;
 import com.persistentbit.sql.PersistSqlException;
-import com.persistentbit.sql.staticsql.DbWork;
-import com.persistentbit.sql.staticsql.ExprRowReaderCache;
-import com.persistentbit.sql.staticsql.Insert;
-import com.persistentbit.sql.staticsql.RowReader;
-import com.persistentbit.sql.staticsql.expr.*;
+import com.persistentbit.glasgolia.jaql.DbWork;
+import com.persistentbit.glasgolia.jaql.ExprRowReaderCache;
+import com.persistentbit.glasgolia.jaql.Insert;
+import com.persistentbit.glasgolia.jaql.RowReader;
+import com.persistentbit.glasgolia.jaql.expr.*;
 
 import java.time.LocalDateTime;
 import java.util.Optional;

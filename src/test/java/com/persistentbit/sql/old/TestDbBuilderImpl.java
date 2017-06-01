@@ -1,6 +1,6 @@
 package com.persistentbit.sql.old;
 
-import com.persistentbit.sql.dbbuilder.impl.DbBuilderImpl;
+import com.persistentbit.glasgolia.db.updates.impl.DbBuilderImpl;
 
 import java.sql.Connection;
 

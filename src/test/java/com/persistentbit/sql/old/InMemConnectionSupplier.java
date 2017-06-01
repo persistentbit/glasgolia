@@ -1,7 +1,7 @@
 package com.persistentbit.sql.old;
 
-import com.persistentbit.sql.connect.PooledConnectionSupplier;
-import com.persistentbit.sql.connect.SimpleConnectionSupplier;
+import com.persistentbit.glasgolia.db.connections.pool.PooledConnectionSupplier;
+import com.persistentbit.glasgolia.db.connections.SimpleConnectionSupplier;
 
 /**
  * User: petermuys

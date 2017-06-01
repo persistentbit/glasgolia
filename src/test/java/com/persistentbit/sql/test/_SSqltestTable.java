@@ -8,8 +8,8 @@ package com.persistentbit.sql.test;
 import com.persistentbit.core.collections.PList;
 import com.persistentbit.core.result.Result;
 import com.persistentbit.core.tuples.Tuple2;
-import com.persistentbit.sql.staticsql.*;
-import com.persistentbit.sql.staticsql.expr.*;
+import com.persistentbit.glasgolia.jaql.*;
+import com.persistentbit.glasgolia.jaql.expr.*;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -99,7 +99,7 @@ public class _SSqltestTable implements ETypeObject<SSqltestTable> {
 		return object.withId((Integer) value);
 	}
 	public DbWork<SSqltestTable> insert(SSqltestTable newRow) {
-		return Insert.into(this,val(newRow)).withGeneratedKeys(_getAutoGenKey().get())
+		return Insert.into(this, val(newRow)).withGeneratedKeys(_getAutoGenKey().get())
 			.map(key -> _setAutoGenKey(newRow,key));
 	}
 	public DbWork<SSqltestTable> selectById(Integer id) {

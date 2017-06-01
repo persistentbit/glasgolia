@@ -4,8 +4,8 @@ import com.persistentbit.core.OK;
 import com.persistentbit.core.result.Result;
 import com.persistentbit.core.testing.TestCase;
 import com.persistentbit.core.testing.TestRunner;
-import com.persistentbit.sql.sqlwork.SqlWork;
-import com.persistentbit.sql.sqlwork.SqlWorkRunner;
+import com.persistentbit.glasgolia.sql.work.SqlWork;
+import com.persistentbit.glasgolia.sql.work.SqlWorkRunner;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
