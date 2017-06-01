@@ -41,7 +41,6 @@ public class DbBuilderImpl implements DbBuilder{
 	 * Create a new {@link DbBuilder} with the given parameters and a default
 	 * {@link SchemaUpdateHistoryImpl} to keep track of the updates already done.
 	 *
-
 	 * @param packageName     The packageName, used to keep track of the updates already done.
 	 * @param sqlResourceName The name of the java resource file containing the sql statements
 	 */
@@ -50,11 +49,9 @@ public class DbBuilderImpl implements DbBuilder{
 	}
 
 	/**
-	 *
-
-	 * @param packageName The packageName, used to keep track of the updates already done.
+	 * @param packageName     The packageName, used to keep track of the updates already done.
 	 * @param sqlResourceName The name of the java resource file containing the sql statements
-	 * @param updateHistory The {@link SchemaUpdateHistory} to use
+	 * @param updateHistory   The {@link SchemaUpdateHistory} to use
 	 */
 	public DbBuilderImpl(String packageName, String sqlResourceName,
 						 SchemaUpdateHistory updateHistory
@@ -68,21 +65,21 @@ public class DbBuilderImpl implements DbBuilder{
 	public DbWork<OK> buildOrUpdate() {
 		return DbWork.function().code(log -> (dbc, tm) ->
 			executeSnipIfExists(onceBeforeSnippetName)
-														   .flatMap(ok -> {
-															   PList<String> names = sqlLoader.getAllSnippetNames()
-																   .filter(name -> name
-																	   .equalsIgnoreCase(dropAllSnippetName) == false && name
-																	   .equalsIgnoreCase(onceBeforeSnippetName) == false);
-															   for(String name : names) {
-																   Result<OK> snipOk =
-																	   executeSnip(name).execute(dbc, tm);
-																   if(snipOk.isPresent() == false) {
-																	   return snipOk;
-																   }
-															   }
-															   return OK.result;
-														   })
-														   .execute(dbc, tm)
+				.flatMap(ok -> {
+					PList<String> names = sqlLoader.getAllSnippetNames()
+						.filter(name -> name
+							.equalsIgnoreCase(dropAllSnippetName) == false && name
+							.equalsIgnoreCase(onceBeforeSnippetName) == false);
+					for(String name : names) {
+						Result<OK> snipOk =
+							executeSnip(name).execute(dbc, tm);
+						if(snipOk.isPresent() == false) {
+							return snipOk;
+						}
+					}
+					return OK.result;
+				})
+				.execute(dbc, tm)
 		);
 	}
 

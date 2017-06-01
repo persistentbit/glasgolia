@@ -20,7 +20,7 @@ import java.sql.Statement;
  */
 public class SchemaUpdateHistoryImpl implements SchemaUpdateHistory{
 
-	private final String            tableName;
+	private final String tableName;
 
 
 	/**
@@ -29,8 +29,6 @@ public class SchemaUpdateHistoryImpl implements SchemaUpdateHistory{
 	public SchemaUpdateHistoryImpl() {
 		this("schema_history");
 	}
-
-
 
 
 	/**
@@ -86,11 +84,11 @@ public class SchemaUpdateHistoryImpl implements SchemaUpdateHistory{
 
 	private DbWork<Boolean> schemaHistoryTableExists() {
 		return DbWork.function().code(l -> (dbc, tm) ->
-													   Result.success(
-														   tableExists(dbc, tm, tableName) ||
-															   tableExists(dbc, tm, tableName.toLowerCase()) ||
-															   tableExists(dbc, tm, tableName.toUpperCase())
-													   )
+			Result.success(
+				tableExists(dbc, tm, tableName) ||
+					tableExists(dbc, tm, tableName.toLowerCase()) ||
+					tableExists(dbc, tm, tableName.toUpperCase())
+			)
 		);
 	}
 
@@ -205,8 +203,6 @@ public class SchemaUpdateHistoryImpl implements SchemaUpdateHistory{
 																	  })
 																	  .execute(dbc, tm)
 		);
-
-
 
 
 	}
