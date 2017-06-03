@@ -10,7 +10,10 @@ import com.persistentbit.core.collections.PByteList;
  */
 public class DbMySql extends AbstractDbType{
 
-	public DbMySql() {
+
+	public static final DbMySql inst = new DbMySql();
+
+	private DbMySql() {
 		super("MySQL");
 	}
 

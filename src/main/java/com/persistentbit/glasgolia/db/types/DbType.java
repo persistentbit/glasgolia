@@ -1,14 +1,11 @@
 package com.persistentbit.glasgolia.db.types;
 
 import com.persistentbit.core.collections.PByteList;
-
-import com.persistentbit.core.logging.Log;
 import com.persistentbit.sql.PersistSqlException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Optional;
 
 /**
  * A DbType instance represent a database type like postgres, mysql, h2,...<br>
@@ -23,59 +20,6 @@ public interface DbType{
 	 * Register the jdbc driver class for this database<br>
 	 */
 	void registerDriver();
-
-
-
-
-	/**
-	 * Try to create a DbType instance for a given database name.<br>
-	 * Currently supported names:<br>
-	 * <ul>
-	 * <li>derby</li>
-	 * <li>h2</li>
-	 * <li>postgres or postgresql</li>
-	 * <li>mysql</li>
-	 * </ul>
-	 * If the name does not match one of the supported names,
-	 * then the name is seen as a java class name of a DbType class.
-	 *
-	 * @param dbTypeOrClassName The short name or the java class name of the DbType instance
-	 *
-	 * @return An Optional DbType.
-	 */
-	static Optional<DbType> createFromName(String dbTypeOrClassName) {
-		return Log.function(dbTypeOrClassName).code(log -> {
-			switch(dbTypeOrClassName.toLowerCase()) {
-				case "derby":
-					return Optional.of(new DbDerby());
-				case "h2":
-					return Optional.of(new DbH2());
-				case "postgres":
-				case "postgresql":
-					return Optional.of(new DbPostgres());
-				case "mysql":
-					return Optional.of(new DbMySql());
-				default:
-					if(dbTypeOrClassName.contains(".") == false) {
-						log.error("Don't know database type name '" + dbTypeOrClassName + "'");
-						return Optional.empty();
-					}
-					//See the name as the class name...
-					try {
-						Class<?> cls = DbType.class.getClassLoader().loadClass(dbTypeOrClassName);
-						return Optional.of((DbType) cls.newInstance());
-					} catch(ClassNotFoundException e) {
-						log.error("Can't load DbType class  '" + dbTypeOrClassName + "'");
-						return Optional.empty();
-					} catch(InstantiationException | IllegalAccessException e) {
-						log.error("Error constructing DbType class '" + dbTypeOrClassName + "'");
-						return Optional.empty();
-					}
-
-			}
-		});
-
-	}
 
 	String getDatabaseName();
 

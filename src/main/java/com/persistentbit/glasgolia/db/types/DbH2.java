@@ -10,7 +10,8 @@ import java.io.File;
  */
 public class DbH2 extends AbstractDbType{
 
-	public DbH2() {
+	public static final DbH2 inst = new DbH2();
+	private DbH2() {
 		super("H2");
 	}
 

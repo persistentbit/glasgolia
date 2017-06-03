@@ -1,7 +1,7 @@
 package com.persistentbit.glasgolia.db.updates;
 
 import com.persistentbit.core.OK;
-import com.persistentbit.glasgolia.jaql.DbWork;
+import com.persistentbit.glasgolia.db.work.DbWork;
 
 import java.sql.Connection;
 
@@ -42,15 +42,15 @@ public interface DbBuilder{
 	 * @return succes or failure
 	 */
 	default DbWork<OK> resetDb() {
-		return DbWork.function().code(l -> (dbc, tm) -> {
-			boolean hasUpdates = hasUpdatesThatAreDone().execute(dbc, tm).orElse(false);
+		return DbWork.function().code(l -> ctx -> {
+			boolean hasUpdates = hasUpdatesThatAreDone().execute(ctx).orElse(false);
 			l.info("Do we have updates? " + hasUpdates);
 			if(hasUpdates) {
 				l.info("Let's drop all");
-				l.add(dropAll().execute(dbc, tm)).orElseThrow();
+				l.add(dropAll().execute(ctx)).orElseThrow();
 			}
 			l.info("Now rebuild all..");
-			return buildOrUpdate().execute(dbc, tm);
+			return buildOrUpdate().execute(ctx);
 		});
 
 	}

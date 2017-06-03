@@ -8,7 +8,9 @@ import com.persistentbit.core.exceptions.ToDo;
  */
 public class DbUnknownType extends AbstractDbType{
 
-	public DbUnknownType() {
+	public static final DbUnknownType inst = new DbUnknownType();
+
+	private DbUnknownType() {
 		super("Unknown");
 	}
 

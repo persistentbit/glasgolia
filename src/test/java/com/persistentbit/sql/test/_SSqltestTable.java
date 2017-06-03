@@ -8,6 +8,7 @@ package com.persistentbit.sql.test;
 import com.persistentbit.core.collections.PList;
 import com.persistentbit.core.result.Result;
 import com.persistentbit.core.tuples.Tuple2;
+import com.persistentbit.glasgolia.db.work.DbWork;
 import com.persistentbit.glasgolia.jaql.*;
 import com.persistentbit.glasgolia.jaql.expr.*;
 

@@ -2,6 +2,7 @@ package com.persistentbit.glasgolia.jaql;
 
 import com.persistentbit.core.collections.PMap;
 import com.persistentbit.core.tuples.Tuple2;
+import com.persistentbit.glasgolia.db.work.DbWorkContext;
 import com.persistentbit.glasgolia.jaql.expr.ETypeObject;
 import com.persistentbit.glasgolia.jaql.expr.ExprToSqlContext;
 
@@ -17,15 +18,15 @@ import java.util.function.Consumer;
  */
 class DeleteSqlBuilder{
 
-	private final DbContext                    dbContext;
+	private final DbWorkContext                dbContext;
 	private final Delete                       delete;
 	private final PMap<ETypeObject, TableInst> tables;
 
-	public DeleteSqlBuilder(DbContext dbContext, Delete delete) {
+	public DeleteSqlBuilder(DbWorkContext dbContext, Delete delete) {
 		this.dbContext = dbContext;
 		this.delete = delete;
 		PMap<ETypeObject, TableInst> allUsed = PMap.empty();
-		allUsed.put(delete.getTable(), new TableInst(delete.getTable().getFullTableName(dbContext.getSchemaName()
+		allUsed.put(delete.getTable(), new TableInst(delete.getTable().getFullTableName(dbContext.getSchema()
 																							.orElse(null)), delete
 														 .getTable()));
 		tables = allUsed;
@@ -49,7 +50,7 @@ class DeleteSqlBuilder{
 	private String generate(ExprToSqlContext context) {
 		String           nl      = "\r\n";
 
-		String res = "DELETE FROM  " + delete.getTable().getFullTableName(dbContext.getSchemaName().orElse(null))
+		String res = "DELETE FROM  " + delete.getTable().getFullTableName(dbContext.getSchema().orElse(null))
 			+ " " + context.uniqueInstanceName(delete.getTable(), delete.getTable()._getTableName())
 			+ nl;
 		if(delete.getWhere() != null) {

@@ -8,7 +8,7 @@ package com.persistentbit.sql.test;
 import com.persistentbit.core.collections.PList;
 import com.persistentbit.core.tuples.Tuple2;
 import com.persistentbit.sql.PersistSqlException;
-import com.persistentbit.glasgolia.jaql.DbWork;
+import com.persistentbit.glasgolia.db.work.DbWork;
 import com.persistentbit.glasgolia.jaql.ExprRowReaderCache;
 import com.persistentbit.glasgolia.jaql.Insert;
 import com.persistentbit.glasgolia.jaql.RowReader;

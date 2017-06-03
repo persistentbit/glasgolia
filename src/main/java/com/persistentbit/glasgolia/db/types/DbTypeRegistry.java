@@ -2,61 +2,81 @@ package com.persistentbit.glasgolia.db.types;
 
 
 import com.persistentbit.core.collections.PMap;
-import com.persistentbit.core.collections.PStream;
-import com.persistentbit.core.tuples.Tuple2;
-import com.persistentbit.sql.PersistSqlException;
+import com.persistentbit.core.logging.FunctionLogging;
+import com.persistentbit.core.result.Result;
+import com.persistentbit.core.utils.BaseValueClass;
+import com.persistentbit.core.utils.UReflect;
+import com.persistentbit.glasgolia.db.connections.DbConnector;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.SQLException;
-import java.util.Optional;
-import java.util.logging.Logger;
+import java.util.Objects;
 
 /**
  * @author Peter Muys
  * @since 19/07/2016
  */
-public class DbTypeRegistry{
+public class DbTypeRegistry extends BaseValueClass{
 
-	static private final Logger               log = Logger.getLogger(DbTypeRegistry.class.getName());
-	private              PMap<String, DbType> reg = PMap.empty();
+	private final PMap<String, DbType> reg;
 
-
-	public DbTypeRegistry() {
-		register(new DbDerby(), new DbH2(), new DbMySql(), new DbPostgres());
+	private DbTypeRegistry(PMap<String,DbType> reg){
+		this.reg = Objects.requireNonNull(reg);
 	}
 
-	public DbTypeRegistry register(DbType... types) {
-		reg = reg.plusAll(PStream.from(types).map(t -> Tuple2.of(t.getDatabaseName(), t)));
-		return this;
+	public static final DbTypeRegistry defaultInst = new DbTypeRegistry(PMap.empty())
+		.add(DbDerby.inst)
+		.add(DbH2.inst)
+		.add(DbMySql.inst)
+		.add(DbPostgres.inst);
+
+
+	public DbTypeRegistry add(DbType type){
+		return new DbTypeRegistry(reg.put(type.getDatabaseName(),type));
 	}
 
-	public DbType getDbType(Connection c) {
-		return getDbTypeOpt(c).orElse(new DbUnknownType());
+	public Result<DbType> getDbType(DbConnector connector){
+		return Result.function(connector).code(l-> connector.create()
+			.flatMap(c -> {
+				try{
+					return getDbType(c);
+				}finally {
+					try{
+						c.close();
+					}catch(Exception e){
+						throw new RuntimeException(e);
+					}
+				}
+			}));
 	}
 
-	public Optional<DbType> getDbTypeOpt(Connection c) {
-		try {
-			return getDbTypeOpt(c.getMetaData());
-		} catch(SQLException e) {
-			throw new PersistSqlException(e);
-		}
+	public Result<DbType> getDbType(String dbNameOrDbTypeClassName){
+		return Result.function(dbNameOrDbTypeClassName).code((FunctionLogging l) ->
+		   	reg.getResult(dbNameOrDbTypeClassName)
+			   .flatMapEmpty(empty ->
+				   UReflect.getClass(dbNameOrDbTypeClassName)
+						 .flatMap(cls -> {
+							 try {
+								 return Result.success((DbType)cls.newInstance());
+							 } catch(InstantiationException | IllegalAccessException | ClassCastException  e) {
+								 return Result.<DbType>failure(e);
+							 }
+						 })
+			   )
+		);
 	}
 
-	public Optional<DbType> getDbTypeOpt(DatabaseMetaData md) {
-		try {
+	public Result<DbType> getDbType(Connection c) {
+		return Result.function(c).code(l ->  getDbType(c.getMetaData()));
+	}
+
+	public Result<DbType> getDbType(DatabaseMetaData md) {
+		return Result.function(md).code(l -> {
 			DbType res = reg.get(md.getDatabaseProductName());
 			if(res == null) {
-				log.warning("Can't find Db Type for database with name '" + md.getDatabaseProductName() + "'");
+				Result.failure("Can't find Db Type for database with name '" + md.getDatabaseProductName() + "'");
 			}
-			return Optional.ofNullable(res);
-		} catch(SQLException e) {
-			throw new PersistSqlException(e);
-		}
+			return Result.success(res);
+		});
 	}
-
-	public DbType getDbType(DatabaseMetaData md) {
-		return getDbTypeOpt(md).orElse(new DbUnknownType());
-	}
-
 }

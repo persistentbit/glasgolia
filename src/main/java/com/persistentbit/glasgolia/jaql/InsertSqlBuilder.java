@@ -4,7 +4,8 @@ import com.persistentbit.core.collections.PList;
 import com.persistentbit.core.logging.Log;
 import com.persistentbit.core.result.Result;
 import com.persistentbit.core.tuples.Tuple2;
-import com.persistentbit.glasgolia.sql.work.SqlWork;
+import com.persistentbit.glasgolia.db.work.DbWork;
+import com.persistentbit.glasgolia.db.work.DbWorkContext;
 import com.persistentbit.glasgolia.jaql.expr.Expr;
 import com.persistentbit.glasgolia.jaql.expr.ExprToSqlContext;
 
@@ -20,15 +21,15 @@ import java.util.function.Consumer;
  */
 class InsertSqlBuilder{
 
-	private final DbContext dbContext;
-	private final Insert    insert;
-	private final Expr      generatedKeys;
+	private final DbWorkContext dbContext;
+	private final Insert        insert;
+	private final Expr          generatedKeys;
 
-	public InsertSqlBuilder(DbContext dbContext, Insert insert) {
+	public InsertSqlBuilder(DbWorkContext dbContext, Insert insert) {
 		this(dbContext, insert, null);
 	}
 
-	public InsertSqlBuilder(DbContext dbContext, Insert insert, Expr generatedKeys) {
+	public InsertSqlBuilder(DbWorkContext dbContext, Insert insert, Expr generatedKeys) {
 		this.dbContext = dbContext;
 		this.insert = insert;
 		this.generatedKeys = generatedKeys;
@@ -41,15 +42,20 @@ class InsertSqlBuilder{
 		);
 	}
 
-	public SqlWork<Integer> work() {
-		return tm -> Result.function().code(l -> {
+	public DbWork<Integer> work() {
+		return ctx -> Result.function().code(l -> {
 			l.info("Insert query");
 			l.info(generateNoParams());
 			Tuple2<String, Consumer<PreparedStatement>> generatedQuery = generate();
-			try(PreparedStatement stat = tm.get().prepareStatement(generatedQuery._1)) {
-				generatedQuery._2.accept(stat);
-				return Result.success(stat.executeUpdate());
-			}
+			return ctx.get().flatMap(con -> {
+				try(PreparedStatement stat = con.prepareStatement(generatedQuery._1)) {
+					generatedQuery._2.accept(stat);
+					return Result.success(stat.executeUpdate());
+				}catch(Exception e){
+					return Result.failure(e);
+				}
+			});
+
 		});
 	}
 
@@ -59,7 +65,7 @@ class InsertSqlBuilder{
 
 	private String generate(ExprToSqlContext context) {
 		return Log.function(context).code(l -> {
-			String fullTableName = insert.getInto().getFullTableName(dbContext.getSchemaName().orElse(null));
+			String fullTableName = insert.getInto().getFullTableName(dbContext.getSchema().orElse(null));
 			context.uniqueInstanceName(insert.getInto(), fullTableName);
 			String nl        = "\r\n";
 			String res       = "";

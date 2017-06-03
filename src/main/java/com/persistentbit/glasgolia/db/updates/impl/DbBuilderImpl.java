@@ -5,14 +5,12 @@ import com.persistentbit.core.OK;
 import com.persistentbit.core.collections.PList;
 import com.persistentbit.core.collections.PMap;
 import com.persistentbit.core.result.Result;
-import com.persistentbit.sql.PersistSqlException;
 import com.persistentbit.glasgolia.db.updates.DbBuilder;
 import com.persistentbit.glasgolia.db.updates.SchemaUpdateHistory;
-import com.persistentbit.glasgolia.sql.work.SqlWork;
+import com.persistentbit.glasgolia.db.work.DbWork;
 import com.persistentbit.glasgolia.sql.scripts.SqlLoader;
-import com.persistentbit.glasgolia.jaql.DbWork;
+import com.persistentbit.sql.PersistSqlException;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Statement;
 import java.util.Optional;
@@ -63,7 +61,7 @@ public class DbBuilderImpl implements DbBuilder{
 
 	@Override
 	public DbWork<OK> buildOrUpdate() {
-		return DbWork.function().code(log -> (dbc, tm) ->
+		return DbWork.function().code(log -> ctx ->
 			executeSnipIfExists(onceBeforeSnippetName)
 				.flatMap(ok -> {
 					PList<String> names = sqlLoader.getAllSnippetNames()
@@ -72,14 +70,14 @@ public class DbBuilderImpl implements DbBuilder{
 							.equalsIgnoreCase(onceBeforeSnippetName) == false);
 					for(String name : names) {
 						Result<OK> snipOk =
-							executeSnip(name).execute(dbc, tm);
+							executeSnip(name).execute(ctx);
 						if(snipOk.isPresent() == false) {
 							return snipOk;
 						}
 					}
 					return OK.result;
 				})
-				.execute(dbc, tm)
+				.execute(ctx)
 		);
 	}
 
@@ -93,33 +91,32 @@ public class DbBuilderImpl implements DbBuilder{
 	});
 
 	private DbWork<OK> executeSnipIfExists(String name) {
-		return DbWork.function(name).code(mainLog -> (dbc, tm) -> Result.function().code(l -> {
+		return DbWork.function(name).code(mainLog -> ctx -> Result.function().code(l -> {
 			if(sqlLoader.hasSnippet(name)) {
-				return executeSnip(name).execute(dbc, tm);
+				return executeSnip(name).execute(ctx);
 			}
 			return OK.result;
 		}));
 	}
 
 	private DbWork<OK> executeSnip(String name) {
-		return DbWork.function(name).code(mainLog -> (dbc, tm) -> Result.function().code(l -> {
+		return DbWork.function(name).code(mainLog -> ctx -> Result.function().code(l -> {
 			//Is Snippet already executed ?
-			if(updateHistory.isDone(packageName, name).execute(dbc, tm).orElseThrow()) {
+			if(updateHistory.isDone(packageName, name).execute(ctx).orElseThrow()) {
 				return OK.result;
 			}
 			l.info("DBUpdate for  " + getFullName(name));
 			//If a method with this name exists -> execute it
 			Optional<Method> optMethod = declaredMethods.get().getOpt(name);
 			if(optMethod.isPresent()) {
-				try {
-					optMethod.get().invoke(this, tm.get());
+				return ctx.get().flatMapExc(con -> {
+					optMethod.get().invoke(this, con);
 					return OK.result;
-				} catch(IllegalAccessException | InvocationTargetException e) {
-					return Result.<OK>failure(new PersistSqlException(e));
-				}
+				});
+
 			}
-			for(SqlWork<OK> work : sqlLoader.getAll(name).map(sql -> executeSql(name, sql))) {
-				Result<OK> ok = work.execute(tm);
+			for(DbWork<OK> work : sqlLoader.getAll(name).map(sql -> executeSql(name, sql))) {
+				Result<OK> ok = work.execute(ctx);
 				if(ok.isPresent() == false) {
 					return ok;
 				}
@@ -127,7 +124,7 @@ public class DbBuilderImpl implements DbBuilder{
 			if(name.equalsIgnoreCase(dropAllSnippetName) || name.equalsIgnoreCase(onceBeforeSnippetName)) {
 				return OK.result;
 			}
-			return updateHistory.setDone(packageName, name).execute(dbc, tm);
+			return updateHistory.setDone(packageName, name).execute(ctx);
 		}));
 	}
 
@@ -141,13 +138,13 @@ public class DbBuilderImpl implements DbBuilder{
 	 * @param name The name of the snippet for error reporting
 	 * @param sql  The sql statement
 	 */
-	private SqlWork<OK> executeSql(String name, String sql) {
-		return tm -> Result.function(name, sql).code(l -> {
-			try(Statement stat = tm.get().createStatement()) {
+	private DbWork<OK> executeSql(String name, String sql) {
+		return ctx -> Result.function(name, sql).code(l -> ctx.get().flatMapExc(con -> {
+			try(Statement stat = con.createStatement()) {
 				stat.execute(sql);
 				return OK.result;
 			}
-		});
+		}));
 
 	}
 
@@ -160,24 +157,24 @@ public class DbBuilderImpl implements DbBuilder{
 	 */
 	@Override
 	public DbWork<OK> dropAll() {
-		return (dbc, tm) -> Result.function().code(l -> {
+		return ctx -> Result.function().code(l -> {
 			if(sqlLoader.hasSnippet(dropAllSnippetName) == false) {
 				return Result.failure(new PersistSqlException("Can't find SQL code 'DropAll' in " + sqlLoader));
 			}
 			return executeSnipIfExists(onceBeforeSnippetName)
 				.andThen(ok -> executeSnip(dropAllSnippetName))
 				.andThen(ok -> updateHistory.removeUpdateHistory(packageName))
-				.execute(dbc, tm);
+				.execute(ctx);
 		});
 
 	}
 
 	@Override
 	public DbWork<Boolean> hasUpdatesThatAreDone() {
-		return (dbc, tm) -> Result.function().code(l ->
-													   updateHistory.getUpdatesDone(packageName)
-														   .map(p -> p.isEmpty() == false)
-														   .execute(dbc, tm)
+		return ctx -> Result.function().code(l ->
+			updateHistory.getUpdatesDone(packageName)
+			   .map(p -> p.isEmpty() == false)
+			   .execute(ctx)
 		);
 	}
 }

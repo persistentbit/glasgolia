@@ -4,7 +4,8 @@ import com.persistentbit.core.collections.PList;
 import com.persistentbit.core.collections.PStream;
 import com.persistentbit.core.result.Result;
 import com.persistentbit.core.tuples.Tuple2;
-import com.persistentbit.glasgolia.sql.work.DbTransManager;
+import com.persistentbit.glasgolia.db.work.DbWork;
+import com.persistentbit.glasgolia.db.work.DbWorkContext;
 import com.persistentbit.glasgolia.jaql.expr.ETypeObject;
 import com.persistentbit.glasgolia.jaql.expr.Expr;
 
@@ -48,17 +49,20 @@ public class Insert implements DbWork<Integer>{
 	}
 
 	@Override
-	public Result<Integer> execute(DbContext dbc, DbTransManager tm) throws Exception {
-		return Result.function(dbc, tm).code(log -> {
-			InsertSqlBuilder b = new InsertSqlBuilder(dbc, this);
+	public Result<Integer> execute(DbWorkContext ctx) throws Exception {
+		return Result.function(ctx).code(log -> {
+			InsertSqlBuilder b = new InsertSqlBuilder(ctx, this);
 
 			log.info(b.generateNoParams());
 
 			Tuple2<String, Consumer<PreparedStatement>> generatedQuery = b.generate();
-			try(PreparedStatement s = tm.get().prepareStatement(generatedQuery._1)) {
-				generatedQuery._2.accept(s);
-				return Result.success(s.executeUpdate());
-			}
+			return  ctx.get().flatMapExc(con -> {
+				try(PreparedStatement s =con.prepareStatement(generatedQuery._1)) {
+					generatedQuery._2.accept(s);
+					return Result.success(s.executeUpdate());
+				}
+			});
+
 		});
 	}
 

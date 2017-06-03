@@ -4,8 +4,9 @@ import com.persistentbit.core.collections.PList;
 import com.persistentbit.core.exceptions.ToDo;
 import com.persistentbit.core.result.Result;
 import com.persistentbit.core.tuples.Tuple2;
+import com.persistentbit.glasgolia.db.work.DbWork;
+import com.persistentbit.glasgolia.db.work.DbWorkContext;
 import com.persistentbit.glasgolia.jaql.*;
-import com.persistentbit.glasgolia.sql.work.DbTransManager;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -36,26 +37,29 @@ public abstract class BaseSelection<T> implements ETypeSelection<T> {
     }
 
     @Override
-    public Result<PList<T>> execute(DbContext dbc, DbTransManager tm) throws Exception {
-        return Result.function(dbc, tm).code(log -> {
-            QuerySqlBuilder b = new QuerySqlBuilder(this, dbc);
+    public Result<PList<T>> execute(DbWorkContext ctx) throws Exception {
+        return Result.function(ctx).code(log -> {
+            QuerySqlBuilder b = new QuerySqlBuilder(this, ctx);
 
             log.info(b.generateNoParams());
 
             Tuple2<String, Consumer<PreparedStatement>> generatedQuery = b.generate();
-            try(PreparedStatement s = tm.get().prepareStatement(generatedQuery._1)) {
-                generatedQuery._2.accept(s);
-                ExprRowReader exprReader = new ExprRowReader();
-                try(ResultSet rs = s.executeQuery()) {
-                    ResultSetRowReader rowReader = new ResultSetRowReader(rs);
-                    PList<T>           res       = PList.empty();
-                    while(rs.next()) {
-                        res = res.plus(read(rowReader, exprReader));
-                        rowReader.nextRow();
+            return ctx.get().flatMapExc(con -> {
+                try(PreparedStatement s = con.prepareStatement(generatedQuery._1)) {
+                    generatedQuery._2.accept(s);
+                    ExprRowReader exprReader = new ExprRowReader();
+                    try(ResultSet rs = s.executeQuery()) {
+                        ResultSetRowReader rowReader = new ResultSetRowReader(rs);
+                        PList<T>           res       = PList.empty();
+                        while(rs.next()) {
+                            res = res.plus(read(rowReader, exprReader));
+                            rowReader.nextRow();
+                        }
+                        return Result.success(res);
                     }
-                    return Result.success(res);
                 }
-            }
+            });
+
         });
     }
 
@@ -66,8 +70,8 @@ public abstract class BaseSelection<T> implements ETypeSelection<T> {
     }
 
     public DbWork<T> justOne() {
-        return DbWork.function().code(l -> (dbc, tm) ->
-            this.execute(dbc, tm).flatMap(list -> Result.fromOpt(list.headOpt()))
+        return DbWork.function().code(l -> ctx ->
+            this.execute(ctx).flatMap(list -> Result.fromOpt(list.headOpt()))
         );
     }
 

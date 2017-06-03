@@ -2,7 +2,8 @@ package com.persistentbit.glasgolia.jaql;
 
 import com.persistentbit.core.result.Result;
 import com.persistentbit.core.tuples.Tuple2;
-import com.persistentbit.glasgolia.sql.work.DbTransManager;
+import com.persistentbit.glasgolia.db.work.DbWork;
+import com.persistentbit.glasgolia.db.work.DbWorkContext;
 import com.persistentbit.glasgolia.jaql.expr.Expr;
 
 import java.sql.PreparedStatement;
@@ -24,28 +25,31 @@ public class InsertWithGeneratedKeys<T> implements DbWork<T>{
 	}
 
 	@Override
-	public Result<T> execute(DbContext dbc, DbTransManager tm) throws Exception {
+	public Result<T> execute(DbWorkContext ctx) throws Exception {
 		return Result.function().code(log -> {
-			InsertSqlBuilder b = new InsertSqlBuilder(dbc, insert, generated);
+			InsertSqlBuilder b = new InsertSqlBuilder(ctx, insert, generated);
 
 			log.info(b.generateNoParams());
 
 			Tuple2<String, Consumer<PreparedStatement>> generatedQuery = b.generate();
-			try(PreparedStatement s = tm.get().prepareStatement(generatedQuery._1, Statement.RETURN_GENERATED_KEYS)) {
-				generatedQuery._2.accept(s);
+			return ctx.get().flatMapExc(con -> {
+				try(PreparedStatement s = con.prepareStatement(generatedQuery._1, Statement.RETURN_GENERATED_KEYS)) {
+					generatedQuery._2.accept(s);
 
-				int           count      = s.executeUpdate();
-				ExprRowReader exprReader = new ExprRowReader();
+					int           count      = s.executeUpdate();
+					ExprRowReader exprReader = new ExprRowReader();
 
 
-				try(ResultSet generatedKeys = s.getGeneratedKeys()) {
-					ResultSetRowReader rowReader = new ResultSetRowReader(generatedKeys);
-					if(generatedKeys.next()) {
-						return Result.success(exprReader.read(generated, rowReader));
+					try(ResultSet generatedKeys = s.getGeneratedKeys()) {
+						ResultSetRowReader rowReader = new ResultSetRowReader(generatedKeys);
+						if(generatedKeys.next()) {
+							return Result.success(exprReader.read(generated, rowReader));
+						}
+						return Result.failure("There are no generated keys...");
 					}
-					return Result.failure("There are no generated keys...");
 				}
-			}
+			});
+
 		});
 	}
 

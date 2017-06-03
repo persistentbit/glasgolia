@@ -4,11 +4,10 @@ import com.persistentbit.core.OK;
 import com.persistentbit.core.collections.PList;
 import com.persistentbit.core.logging.Log;
 import com.persistentbit.core.result.Result;
-import com.persistentbit.sql.PersistSqlException;
 import com.persistentbit.glasgolia.db.updates.SchemaUpdateHistory;
-import com.persistentbit.glasgolia.sql.work.DbTransManager;
-import com.persistentbit.glasgolia.jaql.DbContext;
-import com.persistentbit.glasgolia.jaql.DbWork;
+import com.persistentbit.glasgolia.db.work.DbWork;
+import com.persistentbit.glasgolia.db.work.DbWorkContext;
+import com.persistentbit.sql.PersistSqlException;
 
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -41,64 +40,70 @@ public class SchemaUpdateHistoryImpl implements SchemaUpdateHistory{
 
 	@Override
 	public DbWork<Boolean> isDone(String packageName, String updateName) {
-		return DbWork.function(packageName, updateName).code(log -> (dbc, tm) ->
+		return DbWork.function(packageName, updateName).code(log -> ctx ->
 			createTableIfNotExist()
 				.flatMap(ok -> {
-					String sql = "select count(1) from " + dbc.getFullTableName(tableName) +
+					String sql = "select count(1) from " + ctx.getFullTableName(tableName) +
 						" where package_name=?  and update_name=?";
 					log.info("Executing " + sql);
-					try(PreparedStatement stat = tm.get().prepareStatement(sql)) {
-						stat.setString(1, packageName);
-						stat.setString(2, updateName);
-						try(ResultSet rs = stat.executeQuery()) {
-							rs.next();
-							return Result.success(rs.getInt(1));
+					return ctx.get().flatMapExc(con -> {
+						try(PreparedStatement stat = con.prepareStatement(sql)) {
+							stat.setString(1, packageName);
+							stat.setString(2, updateName);
+							try(ResultSet rs = stat.executeQuery()) {
+								rs.next();
+								return Result.success(rs.getInt(1));
+							}
 						}
-					}
+					});
+
 				})
 				.map(count -> count > 0)
-				.execute(dbc, tm)
+				.execute(ctx)
 		);
 	}
 
 	private DbWork<OK> createTableIfNotExist() {
-		return DbWork.function().code(log -> (dbc, tm) ->
+		return DbWork.function().code(log -> ctx ->
 			schemaHistoryTableExists()
 				.flatMap(exists -> {
 					if(exists == false) {
-						try(Statement stat = tm.get().createStatement()) {
-							stat.execute("CREATE TABLE " + dbc.getFullTableName(tableName) + " (" +
-											 "  createdDate TIMESTAMP          NOT NULL DEFAULT current_timestamp," +
-											 "  package_name  VARCHAR(80)        NOT NULL," +
-											 "  update_name  VARCHAR(80)        NOT NULL," +
-											 "  CONSTRAINT " + tableName + "_uc UNIQUE (package_name,update_name)" +
-											 ")");
-						}
-						return OK.result;
+						return ctx.get().flatMapExc(con -> {
+							try(Statement stat = con.createStatement()) {
+								stat.execute("CREATE TABLE " + ctx.getFullTableName(tableName) + " (" +
+												 "  createdDate TIMESTAMP          NOT NULL DEFAULT current_timestamp," +
+												 "  package_name  VARCHAR(80)        NOT NULL," +
+												 "  update_name  VARCHAR(80)        NOT NULL," +
+												 "  CONSTRAINT " + tableName + "_uc UNIQUE (package_name,update_name)" +
+												 ")");
+							}
+							return OK.result;
+						});
+
 					}
 					return OK.result;
 				})
-				.execute(dbc, tm)
+				.execute(ctx)
 		);
 	}
 
 	private DbWork<Boolean> schemaHistoryTableExists() {
-		return DbWork.function().code(l -> (dbc, tm) ->
+		return DbWork.function().code(l -> ctx ->
 			Result.success(
-				tableExists(dbc, tm, tableName) ||
-					tableExists(dbc, tm, tableName.toLowerCase()) ||
-					tableExists(dbc, tm, tableName.toUpperCase())
+				tableExists(ctx, tableName) ||
+					tableExists(ctx, tableName.toLowerCase()) ||
+					tableExists(ctx, tableName.toUpperCase())
 			)
 		);
 	}
 
-	private boolean tableExists(DbContext dbc, DbTransManager tm, String tableName) {
+	private boolean tableExists(DbWorkContext ctx, String tableName) {
 		return Log.function(tableName).code(l -> {
-			DatabaseMetaData dbm = tm.get().getMetaData();
+			DatabaseMetaData dbm = ctx.get().orElseThrow().getMetaData();
 
 			try(ResultSet rs = dbm.getTables(
 				null,
-				dbc.getSchemaName().orElse(null),
+				ctx.getSchema().orElse(null),
 				tableName, null
 			)) {
 				while(rs.next()) {
@@ -114,31 +119,32 @@ public class SchemaUpdateHistoryImpl implements SchemaUpdateHistory{
 
 	@Override
 	public DbWork<PList<String>> getUpdatesDone(String packageName) {
-		return (dbc, tm) -> Result.function(packageName).code(l ->
+		return ctx -> Result.function(packageName).code(l ->
+			ctx.get().flatMapExc(con ->
+				schemaHistoryTableExists()
+					.flatMap(exists -> {
+						PList<String> result = PList.empty();
+						if(exists) {
+							try(PreparedStatement stat = con.prepareStatement("select update_name from " +
+									ctx.getFullTableName(tableName) +
+													  " where package_name=?")) {
+								stat.setString(1, packageName);
 
-																  schemaHistoryTableExists()
-																	  .flatMap(exists -> {
-																		  PList<String> result = PList.empty();
-																		  if(exists) {
-																			  try(PreparedStatement stat = tm.get()
-																				  .prepareStatement("select update_name from " + dbc
-																					  .getFullTableName(tableName) +
-																										" where package_name=?")) {
-																				  stat.setString(1, packageName);
+								try(ResultSet rs = stat
+									.executeQuery()) {
+									while(rs.next()) {
+										result = result
+											.plus(rs.getString(1));
+									}
 
-																				  try(ResultSet rs = stat
-																					  .executeQuery()) {
-																					  while(rs.next()) {
-																						  result = result
-																							  .plus(rs.getString(1));
-																					  }
+								}
+							}
+						}
+						return Result.success(result);
+					})
+					.execute(ctx)
+			)
 
-																				  }
-																			  }
-																		  }
-																		  return Result.success(result);
-																	  })
-																	  .execute(dbc, tm)
 		);
 
 	}
@@ -146,62 +152,63 @@ public class SchemaUpdateHistoryImpl implements SchemaUpdateHistory{
 
 	@Override
 	public DbWork<OK> setDone(String packageName, String updateName) {
-		DbWork<OK> insert = (dbc, tm) -> {
-			String sql = "insert into " + dbc.getFullTableName(tableName) +
+		DbWork<OK> insert = ctx -> {
+			String sql = "insert into " + ctx.getFullTableName(tableName) +
 				"(package_name,update_name) values(?,?)";
-			try(PreparedStatement s = tm.get().prepareStatement(sql)) {
-				s.setString(1, packageName);
-				s.setString(2, updateName);
-				if(s.executeUpdate() != 1) {
-					return Result
-						.failure(new PersistSqlException("Expected 1 update for " + packageName + "." + updateName));
+			return ctx.get().flatMapExc(con -> {
+				try(PreparedStatement s = con.prepareStatement(sql)) {
+					s.setString(1, packageName);
+					s.setString(2, updateName);
+					if(s.executeUpdate() != 1) {
+						return Result
+							.failure(new PersistSqlException("Expected 1 update for " + packageName + "." + updateName));
+					}
 				}
-			}
-			return OK.result;
+				return OK.result;
+			});
+
 		};
-		return (dbc, tm) -> Result.function(packageName, updateName).code(l ->
-																			  createTableIfNotExist()
-																				  .flatMap(ok -> insert
-																					  .execute(dbc, tm))
-																				  .execute(dbc, tm)
+		return ctx -> Result.function(packageName, updateName).code(l ->
+				createTableIfNotExist()
+				  .flatMap(ok -> insert
+					  .execute(ctx))
+						  .execute(ctx)
 		);
 	}
 
 	@Override
 	public DbWork<OK> removeUpdateHistory(String packageName) {
-		DbWork<OK> delete = (dbc, tm) -> {
-			String sql = "delete from " + dbc.getFullTableName(tableName) + " where package_name = ?";
-			try(PreparedStatement s = tm.get().prepareStatement(sql)) {
+		DbWork<OK> delete = ctx -> ctx.get().flatMapExc(con -> {
+			String sql = "delete from " + ctx.getFullTableName(tableName) + " where package_name = ?";
+			try(PreparedStatement s = con.prepareStatement(sql)) {
 				s.setString(1, packageName);
 				s.executeUpdate();
 			}
-			try(PreparedStatement s = tm.get()
-				.prepareStatement("select count(1) from " + dbc.getFullTableName(tableName))) {
+			try(PreparedStatement s = con.prepareStatement("select count(1) from " + ctx.getFullTableName(tableName))) {
 				int count = 0;
 				try(ResultSet rs = s.executeQuery()) {
 					rs.next();
 					count = rs.getInt(1);
 				}
 				if(count == 0) {
-					try(PreparedStatement ds = tm.get()
-						.prepareStatement("drop table " + dbc.getFullTableName(tableName))) {
+					try(PreparedStatement ds = con.prepareStatement("drop table " + ctx.getFullTableName(tableName))) {
 						ds.executeUpdate();
 					}
 				}
 
 			}
 			return OK.result;
-		};
+		});
 
-		return (dbc, tm) -> Result.function(packageName).code(l ->
+		return ctx -> Result.function(packageName).code(l ->
 																  schemaHistoryTableExists()
 																	  .flatMap(exists -> {
 																		  if(exists) {
-																			  return delete.execute(dbc, tm);
+																			  return delete.execute(ctx);
 																		  }
 																		  return OK.result;
 																	  })
-																	  .execute(dbc, tm)
+																	  .execute(ctx)
 		);
 
 

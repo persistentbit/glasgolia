@@ -184,6 +184,11 @@ public interface Expr<S>{
 
 	String _toSql(ExprToSqlContext context);
 
+	/**
+	 * If this Expr contains multiple Expr values (like a ETuple2 for example),
+	 * then return all the individual column elements
+	 * @return Al the contained column expressions
+	 */
 	default PList<Expr<?>> _expand() {
 		return PList.val(this);
 	}

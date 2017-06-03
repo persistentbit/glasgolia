@@ -1,7 +1,7 @@
 package com.persistentbit.glasgolia.jaql.expr;
 
 import com.persistentbit.core.collections.PList;
-import com.persistentbit.glasgolia.jaql.DbWork;
+import com.persistentbit.glasgolia.db.work.DbWork;
 import com.persistentbit.glasgolia.jaql.Query;
 
 import java.util.Optional;

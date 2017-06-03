@@ -2,6 +2,7 @@ package com.persistentbit.glasgolia.jaql;
 
 import com.persistentbit.core.collections.PList;
 import com.persistentbit.core.tuples.Tuple2;
+import com.persistentbit.glasgolia.db.work.DbWorkContext;
 import com.persistentbit.glasgolia.jaql.expr.BaseSelection;
 import com.persistentbit.glasgolia.jaql.expr.ETypeSelection;
 import com.persistentbit.glasgolia.jaql.expr.Expr;
@@ -18,12 +19,12 @@ import java.util.function.Consumer;
  */
 public class QuerySqlBuilder{
 
-	private final DbContext      dbContext;
+	private final DbWorkContext  dbContext;
 	private final ETypeSelection s;
 	private final Query          q;
 
 
-	public QuerySqlBuilder(ETypeSelection s, DbContext dbContext) {
+	public QuerySqlBuilder(ETypeSelection s, DbWorkContext dbContext) {
 		this.s = s;
 		this.dbContext = dbContext;
 		this.q = s.getQuery();
@@ -60,7 +61,7 @@ public class QuerySqlBuilder{
 		}
 		context.setUseSqlParams(isUseSql);
 		String distinct = q.distinct ? "DISTINCT " : "";
-		String schema   = dbContext.getSchemaName().orElse(null);
+		String schema   = dbContext.getSchema().orElse(null);
 		String sql      = "SELECT " + distinct + selItems + nl;
 		sql += "FROM " + q.getFrom().getFullTableName(schema) + " AS " + context
 			.uniqueInstanceName(q.getFrom(), q.getFrom().getFullTableName(null)) + " ";
@@ -107,7 +108,7 @@ public class QuerySqlBuilder{
 				throw new IllegalArgumentException(join.getType().toString());
 
 		}
-		String schema = dbContext.getSchemaName().orElse(null);
+		String schema = dbContext.getSchema().orElse(null);
 		res += " " + join.getTable().getFullTableName(schema) + " " + context
 			.uniqueInstanceName(join.getTable(), join.getTable().getFullTableName(null));
 		res += join.getJoinExpr().map(e -> " ON " + e._toSql(context)).get();

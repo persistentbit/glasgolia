@@ -6,7 +6,7 @@ import com.persistentbit.core.collections.PList;
 import com.persistentbit.core.collections.PStream;
 import com.persistentbit.core.result.Result;
 import com.persistentbit.glasgolia.db.updates.DbBuilder;
-import com.persistentbit.glasgolia.jaql.DbWork;
+import com.persistentbit.glasgolia.db.work.DbWork;
 
 /**
  * @author Peter Muys
@@ -33,10 +33,10 @@ public class DbBuilderGroup implements DbBuilder{
 
 	@Override
 	public DbWork<Boolean> hasUpdatesThatAreDone() {
-		return DbWork.function().code(log -> (dbc, tm) -> {
+		return DbWork.function().code(log -> ctx -> {
 			boolean ok = true;
 			for(DbBuilder b : builders) {
-				Result<Boolean> itemOk = b.hasUpdatesThatAreDone().execute(dbc, tm);
+				Result<Boolean> itemOk = b.hasUpdatesThatAreDone().execute(ctx);
 				if(itemOk.isError()) {
 					return itemOk;
 				}

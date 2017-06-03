@@ -11,8 +11,8 @@ import java.time.format.DateTimeFormatter;
  * @see DbType
  */
 public class DbDerby extends AbstractDbType{
-
-	public DbDerby() {
+	public static final DbDerby inst = new DbDerby();
+	private DbDerby() {
 		super("Apache Derby");
 	}
 

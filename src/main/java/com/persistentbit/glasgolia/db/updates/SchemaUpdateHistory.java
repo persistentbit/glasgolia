@@ -3,7 +3,7 @@ package com.persistentbit.glasgolia.db.updates;
 import com.persistentbit.core.OK;
 import com.persistentbit.core.collections.PList;
 import com.persistentbit.glasgolia.db.updates.impl.DbBuilderImpl;
-import com.persistentbit.glasgolia.jaql.DbWork;
+import com.persistentbit.glasgolia.db.work.DbWork;
 
 /**
  * Service interface to keep track of database schema updates.<br>

@@ -11,12 +11,14 @@ import com.persistentbit.core.collections.PByteList;
  */
 public class DbPostgres extends AbstractDbType{
 
+	public static final DbPostgres inst = new DbPostgres();
+
 	/**
 	 * The default tcp/ip connection port
 	 */
 	public static final int defaultPort = 5432;
 
-	public DbPostgres() {
+	private DbPostgres() {
 		super("PostgreSQL");
 	}
 

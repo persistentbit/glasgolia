@@ -3,6 +3,7 @@ package com.persistentbit.glasgolia.jaql;
 import com.persistentbit.core.collections.PList;
 import com.persistentbit.core.collections.PMap;
 import com.persistentbit.core.tuples.Tuple2;
+import com.persistentbit.glasgolia.db.work.DbWorkContext;
 import com.persistentbit.glasgolia.jaql.expr.ETypeObject;
 import com.persistentbit.glasgolia.jaql.expr.Expr;
 import com.persistentbit.glasgolia.jaql.expr.ExprToSqlContext;
@@ -19,15 +20,15 @@ import java.util.function.Consumer;
  */
 class UpdateSqlBuilder{
 
-	private final DbContext                    dbContext;
+	private final DbWorkContext                dbContext;
 	private final Update                       update;
 	private final PMap<ETypeObject, TableInst> tables;
 
-	public UpdateSqlBuilder(DbContext dbContext, Update update) {
+	public UpdateSqlBuilder(DbWorkContext dbContext, Update update) {
 		this.dbContext = dbContext;
 		this.update = update;
 		PMap<ETypeObject, TableInst> allUsed = PMap.empty();
-		allUsed.put(update.getTable(), new TableInst(update.getTable().getFullTableName(dbContext.getSchemaName()
+		allUsed.put(update.getTable(), new TableInst(update.getTable().getFullTableName(dbContext.getSchema()
 																							.orElse(null)), update
 														 .getTable()));
 		tables = allUsed;
@@ -51,7 +52,7 @@ class UpdateSqlBuilder{
 	private String generate(ExprToSqlContext context) {
 		String nl = "\r\n";
 		String res =
-			"UPDATE " + update.getTable().getFullTableName(dbContext.getSchemaName().orElse(null)) + " AS " + context
+			"UPDATE " + update.getTable().getFullTableName(dbContext.getSchema().orElse(null)) + " AS " + context
 			.uniqueInstanceName(update.getTable(), update.getTable()._getTableName()) + nl;
 		res += " SET ";
 		PList<Tuple2<Expr<?>, Expr<?>>> sets = update.getSet();

@@ -1,4 +1,4 @@
-package com.persistentbit.glasgolia.jaql;
+package com.persistentbit.glasgolia.db.work;
 
 import com.persistentbit.core.OK;
 import com.persistentbit.core.function.ThrowingFunction;
@@ -7,15 +7,15 @@ import com.persistentbit.core.logging.entries.LogContext;
 import com.persistentbit.core.logging.entries.LogEntryFunction;
 import com.persistentbit.core.result.Result;
 import com.persistentbit.core.tuples.Tuple2;
-import com.persistentbit.glasgolia.sql.work.DbTransManager;
-import com.persistentbit.glasgolia.sql.work.SqlWork;
+import com.persistentbit.glasgolia.db.transactions.DbTransaction;
+
 
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
  * A DBWork lambda is a piece of code that accesses a Database.<br>
- * To execute the code, a {@link DbContext} and a {@link DbTransManager}
+ * To execute the code, a {@link DbWorkContext} and a {@link DbTransaction}
  * @author petermuys
  * @since 13/01/17
  */
@@ -23,16 +23,15 @@ import java.util.function.Predicate;
 public interface DbWork<R>{
 
 
-	Result<R> execute(DbContext dbc, DbTransManager tm) throws Exception;
+	Result<R> execute(DbWorkContext ctx) throws Exception;
 
-	default Result<R> run(DbWorkRunner runner) {
-		return runner.run(this);
-	}
+
+
 
 	default <T> DbWork<T> map(ThrowingFunction<R, T, Exception> f) {
-		return DbWork.function().code(l -> (dbc, tm) -> {
+		return DbWork.function().code(l -> ctx -> {
 			try {
-				Result<R> thisResult = this.execute(dbc, tm);
+				Result<R> thisResult = this.execute(ctx);
 				if(thisResult.isError()) {
 					return thisResult.map(v -> null);
 				}
@@ -45,15 +44,9 @@ public interface DbWork<R>{
 	}
 
 	default <T> DbWork<T> flatMap(ThrowingFunction<R, Result<T>, Exception> mapper) {
-		return DbWork.function().code(l -> (dbc, tm) ->
-			this.execute(dbc, tm)
-				.flatMap(r -> {
-					try {
-						return mapper.apply(r);
-					} catch(Exception e) {
-						return Result.<T>failure(e);
-					}
-				})
+		return DbWork.function().code(l -> ctx ->
+			this.execute(ctx)
+				.flatMapExc(mapper)
 		);
 	}
 
@@ -74,44 +67,44 @@ public interface DbWork<R>{
 	}
 
 	default <T> DbWork<T> andThen(ThrowingFunction<Result<R>, DbWork<T>, Exception> after) {
-		return (dbc, tm) -> {
-			Result<R> thisResult = this.execute(dbc, tm);
+		return ctx -> {
+			Result<R> thisResult = this.execute(ctx);
 			if(thisResult.isError()) {
 				return thisResult.map(v -> null);//Convert the failure from <R> to <T>
 			}
-			Result<T> afterResult = after.apply(thisResult).execute(dbc, tm);
+			Result<T> afterResult = after.apply(thisResult).execute(ctx);
 			return afterResult.mapLog(l -> thisResult.getLog().append(l));
 		};
 	}
 
 	default <OTHER> DbWork<Tuple2<R, OTHER>> combine(Function<R, DbWork<OTHER>> other) {
-		return (dbc, tm) -> {
-			Result<R> resR = execute(dbc, tm);
+		return ctx -> {
+			Result<R> resR = execute(ctx);
 			if(resR.isPresent() == false) {
 				return resR.map(v -> null); //Map error
 			}
 			R r = resR.orElseThrow();
-			return other.apply(r).execute(dbc, tm)
+			return other.apply(r).execute(ctx)
 						.map(o -> Tuple2.of(r, o));
 		};
 	}
 
 
 	default <T> DbWork<T> andThenOnSuccess(ThrowingFunction<R, DbWork<T>, Exception> after) {
-		return (dbc, tm) -> {
-			Result<R> thisResult = this.execute(dbc, tm);
+		return ctx -> {
+			Result<R> thisResult = this.execute(ctx);
 			if(thisResult.isPresent() == false) {
 				return thisResult.map(v -> null);//Convert the failure or empty from <R> to <T>
 			}
-			Result<T> afterResult = after.apply(thisResult.orElseThrow()).execute(dbc, tm);
+			Result<T> afterResult = after.apply(thisResult.orElseThrow()).execute(ctx);
 			return afterResult.mapLog(l -> thisResult.getLog().append(l));
 		};
 	}
 
 	static DbWork<OK> sequence(Iterable<DbWork<OK>> sequence) {
-		return DbWork.function().code(log -> (dbc, tm) -> {
+		return DbWork.function().code(log -> ctx -> {
 			for(DbWork<OK> w : sequence) {
-				Result<OK> itemOK = w.execute(dbc, tm);
+				Result<OK> itemOK = w.execute(ctx);
 				if(itemOK.isError()) {
 					return itemOK;
 				}
@@ -121,9 +114,6 @@ public interface DbWork<R>{
 		});
 	}
 
-	default SqlWork<R> asSqlWork(DbContext dbc) {
-		return tm -> execute(dbc, tm);
-	}
 
 
 	static FLogging function() {
@@ -159,10 +149,10 @@ public interface DbWork<R>{
 
 		@SuppressWarnings("unchecked")
 		public <R> DbWork<R> code(DbWorkWithLogging<R> code) {
-			return (dbc, tm) ->
+			return ctx ->
 				code
 					.create(this)
-					.execute(dbc, tm).mapLog(l -> getLog().append(l))
+					.execute(ctx).mapLog(l -> getLog().append(l))
 				;
 		}
 
