@@ -34,7 +34,7 @@ public abstract class AbstractDbType implements DbType{
 
 	@Override
 	public String toString() {
-		return "DbType[" + getDatabaseName() + "]";
+		return "DbDataType[" + getDatabaseName() + "]";
 	}
 
 	static void registerDriver(String driverClass) {

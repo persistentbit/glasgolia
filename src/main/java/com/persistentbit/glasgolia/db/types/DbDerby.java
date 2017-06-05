@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * A DbType for an Apache Derby database.
+ * A DbDataType for an Apache Derby database.
  * @author Peter Muys
  * @since 19/07/2016
  * @see DbType

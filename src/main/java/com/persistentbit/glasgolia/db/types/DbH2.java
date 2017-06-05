@@ -3,7 +3,7 @@ package com.persistentbit.glasgolia.db.types;
 import java.io.File;
 
 /**
- * A DbType for a H2 database.
+ * A DbDataType for a H2 database.
  * @author Peter Muys
  * @since 19/07/2016
  * @see DbType

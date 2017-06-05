@@ -9,7 +9,7 @@ import com.persistentbit.core.result.Result;
 import com.persistentbit.core.tuples.Tuple2;
 import com.persistentbit.glasgolia.db.transactions.DbTransaction;
 
-
+import java.sql.Connection;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -25,6 +25,13 @@ public interface DbWork<R>{
 
 	Result<R> execute(DbWorkContext ctx) throws Exception;
 
+	default Result<R> executeNoExc(DbWorkContext ctx){
+		try{
+			return execute(ctx);
+		}catch(Exception e){
+			return Result.failure(e);
+		}
+	}
 
 
 
@@ -146,6 +153,7 @@ public interface DbWork<R>{
 
 			DbWork<R> create(DbWork.FLogging log) throws Exception;
 		}
+
 
 		@SuppressWarnings("unchecked")
 		public <R> DbWork<R> code(DbWorkWithLogging<R> code) {

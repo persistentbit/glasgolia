@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * A DbType instance represent a database type like postgres, mysql, h2,...<br>
- * A DbType contains database type specific mappings for working with Sql.<br>
+ * A DbDataType instance represent a database type like postgres, mysql, h2,...<br>
+ * A DbDataType contains database type specific mappings for working with Sql.<br>
  * @author Peter Muys
  * @since 19/07/2016
  */
@@ -81,5 +81,7 @@ public interface DbType{
 	 * @return The SQL statement (without ';')
 	 */
 	String setCurrentSchemaStatement(String schema);
+
+
 
 }

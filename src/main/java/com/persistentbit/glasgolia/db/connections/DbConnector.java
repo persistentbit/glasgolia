@@ -5,10 +5,13 @@ import com.persistentbit.core.result.Result;
 import java.sql.Connection;
 
 /**
- * TODOC
+ * A Supplier of a database {@link Connection}
  *
  * @author petermuys
  * @since 2/06/17
+ * @see DbDatasourceConnector
+ * @see DbPoolConnector
+ * @see DbSimpleConnector
  */
 @FunctionalInterface
 public interface DbConnector{

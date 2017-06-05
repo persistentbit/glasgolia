@@ -3,7 +3,7 @@ package com.persistentbit.glasgolia.db.types;
 import com.persistentbit.core.collections.PByteList;
 
 /**
- * DbType for a MySql database
+ * DbDataType for a MySql database
  * @author Peter Muys
  * @since 19/07/2016
  * @see DbType
