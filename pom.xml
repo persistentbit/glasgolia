@@ -53,6 +53,22 @@
     <build>
 
         <plugins>
+            <plugin>
+                <groupId>com.persistentbit</groupId>
+                <artifactId>javacodegen</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+                <executions>
+                    <execution>
+                        <goals><goal>generate-caseclasses</goal></goals>
+                        <configuration>
+                            <packages>
+                                <package>com.persistentbit</package>
+                            </packages>
+                        </configuration>
+                    </execution>
+
+                </executions>
+            </plugin>
             <!--
             <plugin>
                 <groupId>com.persistentbit</groupId>
