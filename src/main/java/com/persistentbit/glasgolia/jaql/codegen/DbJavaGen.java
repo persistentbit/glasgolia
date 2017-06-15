@@ -652,7 +652,7 @@ public final class DbJavaGen{
 //				addImport(dbCls);
 //
 //				addImport(TransactionRunner.class);
-//				addImport(DbDataType.class);
+//				addImport(DbMetaDataType.class);
 //				String schemaName =
 //					atUtils.getOneAnnotation(substema.getPackageDef().getAnnotations(), rclassSchema)
 //						.map(at -> atUtils.getStringProperty(at, "name").map(n -> "\"" + n + "\"").orElse(null))

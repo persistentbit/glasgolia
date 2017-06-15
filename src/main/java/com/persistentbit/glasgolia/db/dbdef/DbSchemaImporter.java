@@ -14,24 +14,24 @@ import com.persistentbit.glasgolia.nativesql.UJdbc;
  */
 public class DbSchemaImporter{
 
-	public static DbWork<PList<DbCatalog>> getCatalogs(){
-		return DbWork.function().code(log -> ctx -> ctx.get().<PList<DbCatalog>>flatMapExc(con ->{
+	public static DbWork<PList<DbMetaCatalog>> getCatalogs(){
+		return DbWork.function().code(log -> ctx -> ctx.get().<PList<DbMetaCatalog>>flatMapExc(con ->{
 			return UJdbc.getList(con.getMetaData().getCatalogs(),
-				 rs -> new DbCatalog(rs.getString("TABLE_CAT"))
+				 rs -> new DbMetaCatalog(rs.getString("TABLE_CAT"))
 			);
 
 		}));
 	}
-	public static DbWork<PList<DbSchema>> getSchemas(DbCatalog catalog) {
-		return DbWork.function(catalog).code(log -> ctx -> ctx.get().<PList<DbSchema>>flatMapExc(con ->{
+	public static DbWork<PList<DbMetaSchema>> getSchemas(DbMetaCatalog catalog) {
+		return DbWork.function(catalog).code(log -> ctx -> ctx.get().<PList<DbMetaSchema>>flatMapExc(con ->{
 			return UJdbc.getList(con.getMetaData().getSchemas(catalog.getName().orElse(""),null),
-								 rs -> new DbSchema(catalog,rs.getString("TABLE_SCHEM"))
+								 rs -> new DbMetaSchema(catalog, rs.getString("TABLE_SCHEM"))
 			);
 
 		}));
 	}
 
-	public static DbWork<PList<String>> getTableTypes(DbSchema schema){
+	public static DbWork<PList<String>> getTableTypes(DbMetaSchema schema){
 		return DbWork.function(schema).code(log -> ctx -> ctx.get().<PList<String>>flatMapExc(con ->{
 			return UJdbc.getList(con.getMetaData().getSchemas(),
 								 rs -> rs.getString("TABLE_TYPE")
@@ -40,7 +40,7 @@ public class DbSchemaImporter{
 		}));
 	}
 
-	public static DbWork<PList<DbTable>> getTables(DbSchema schema, String typeName){
+	public static DbWork<PList<DbTable>> getTables(DbMetaSchema schema, String typeName){
 		return DbWork.function(schema,typeName).code(log -> ctx -> ctx.get().<PList<DbTable>>flatMapExc(con -> {
 			return UJdbc.getList(con.getMetaData().getTables(
 				schema.getCatalog().getName().orElse(""),
@@ -66,12 +66,12 @@ public class DbSchemaImporter{
 	}
 
 
-	public static DbWork<DbSchema> importSchema(String catalogName, String schemaName){
-		return DbWork.function(catalogName,schemaName).code(log -> ctx -> ctx.get().<DbSchema>flatMapExc(con ->{
+	public static DbWork<DbMetaSchema> importSchema(String catalogName, String schemaName){
+		return DbWork.function(catalogName,schemaName).code(log -> ctx -> ctx.get().<DbMetaSchema>flatMapExc(con ->{
 			throw new ToDo();
 			/*DatabaseMetaData md = con.getMetaData();
 			return UJdbc.getList(md.getSchemas(),rs -> {
-				return new DbSchema(
+				return new DbMetaSchema(
 					rs.getString("TABLE_SCHEM"),
 					rs.getString("TABLE_CATALOG")
 				);
@@ -79,7 +79,7 @@ public class DbSchemaImporter{
 					  Result.fromOpt(
 					  	list.find(schem -> schemaName.equals(schem.getName().orElse(null))))
 			)
-			.<DbSchema>flatMapExc(schema -> {
+			.<DbMetaSchema>flatMapExc(schema -> {
 				log.info("Found schema: " + schema.getCatalogName() + ", " + schema.getName());
 
 				try(ResultSet ttypes = md.getTableTypes()){
@@ -110,7 +110,7 @@ public class DbSchemaImporter{
 		}));
 	}
 
-	private Result<DbTable> importSet(DbSchema schema, DbTable set){
+	private Result<DbTable> importSet(DbMetaSchema schema, DbTable set){
 		throw new ToDo();
 	}
 

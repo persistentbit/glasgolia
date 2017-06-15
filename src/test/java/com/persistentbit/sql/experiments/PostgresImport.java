@@ -6,8 +6,8 @@ import com.persistentbit.core.logging.printing.LogPrint;
 import com.persistentbit.core.result.Result;
 import com.persistentbit.glasgolia.db.connections.DbConnector;
 import com.persistentbit.glasgolia.db.connections.DbSimpleConnector;
-import com.persistentbit.glasgolia.db.dbdef.DbCatalog;
-import com.persistentbit.glasgolia.db.dbdef.DbSchema;
+import com.persistentbit.glasgolia.db.dbdef.DbMetaCatalog;
+import com.persistentbit.glasgolia.db.dbdef.DbMetaSchema;
 import com.persistentbit.glasgolia.db.dbdef.DbSchemaImporter;
 import com.persistentbit.glasgolia.db.dbdef.DbTable;
 import com.persistentbit.glasgolia.db.types.DbPostgres;
@@ -31,7 +31,7 @@ public class PostgresImport{
 		};
 	}
 
-	public static DbWork<OK> dumpSchema(PrintStream out, DbSchema schema){
+	public static DbWork<OK> dumpSchema(PrintStream out, DbMetaSchema schema){
 		return ctx -> {
 			out.println("SCHEMA " + schema.getFullName());
 			return DbSchemaImporter.getTables(schema,null).execute(ctx).flatMap(tables -> {
@@ -48,10 +48,10 @@ public class PostgresImport{
 		};
 	}
 
-	public static DbWork<OK> dumpCatalog(PrintStream out, DbCatalog catalog){
+	public static DbWork<OK> dumpCatalog(PrintStream out, DbMetaCatalog catalog){
 		return ctx -> DbSchemaImporter.getSchemas(catalog).execute(ctx).flatMap(schemas -> {
 			out.println("CATALOG " + catalog.getName().orElse(""));
-			for(DbSchema schema : schemas){
+			for(DbMetaSchema schema : schemas){
 				Result<OK> res = dumpSchema(out,schema).executeNoExc(ctx);
 				if(res.isError()){
 					return res.map(v-> null);
@@ -65,7 +65,7 @@ public class PostgresImport{
 
 	public static DbWork<OK> dumpDb(PrintStream out){
 		return ctx -> DbSchemaImporter.getCatalogs().execute(ctx).flatMap(catalogs -> {
-			for(DbCatalog catalog : catalogs){
+			for(DbMetaCatalog catalog : catalogs){
 				Result<OK> res = dumpCatalog(out,catalog).executeNoExc(ctx);
 				if(res.isError()){
 					return res.map(v-> null);
@@ -85,7 +85,7 @@ public class PostgresImport{
 			connector = new DbSimpleConnector(DbPostgres
 												  .connectionUrl("localhost", "glasgolia", "testdb"), "glasgolia_user", "glasgolia_pwd");
 		DbRun runner = DbRun.create(connector);
-		//Result<DbSchema> res = runner.run(DbSchemaImporter.importSchema(null, "testdb"));
+		//Result<DbMetaSchema> res = runner.run(DbSchemaImporter.importSchema(null, "testdb"));
 		//lp.print(res.getLog());
 		runner.run(dumpDb(System.out)).orElseThrow();
 	}

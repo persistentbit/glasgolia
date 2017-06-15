@@ -12,8 +12,8 @@ import com.persistentbit.core.utils.BaseValueClass;
  * @since 3/06/17
  */
 public class DbTable extends BaseValueClass{
-	private final String type;
-	private final DbSchema schema;
+	private final String       type;
+	private final DbMetaSchema schema;
 
 	private final String          name;
 	private final PList<DbColumn> columns;
@@ -22,7 +22,7 @@ public class DbTable extends BaseValueClass{
 	private final String          comment;
 
 
-	public DbTable(String type, DbSchema schema, String name,
+	public DbTable(String type, DbMetaSchema schema, String name,
 				   PList<DbColumn> columns,
 				   PList<DbColumn> primKey,
 				   String comment
@@ -35,7 +35,7 @@ public class DbTable extends BaseValueClass{
 		this.comment = comment;
 		checkNullFields();
 	}
-	public DbTable(String type, DbSchema schema, String name){
+	public DbTable(String type, DbMetaSchema schema, String name){
 		this(type,schema,name,PList.empty(),PList.empty(),null);
 	}
 

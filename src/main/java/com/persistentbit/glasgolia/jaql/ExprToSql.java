@@ -8,14 +8,14 @@ public class ExprToSql{}
 //implements ExprVisitor<String>{
 //
 //    private final Function<ETypeObject,Optional<String>> instanceName;
-//    private final DbDataType dbType;
+//    private final DbMetaDataType dbType;
 //
-//    private ExprToSql(Function<ETypeObject,Optional<String>> instanceName, DbDataType dbType) {
+//    private ExprToSql(Function<ETypeObject,Optional<String>> instanceName, DbMetaDataType dbType) {
 //        this.instanceName = instanceName;
 //        this.dbType = dbType;
 //    }
 //
-//    static public String toSql(Expr e,Function<ETypeObject,Optional<String>> instanceName, DbDataType dbType){
+//    static public String toSql(Expr e,Function<ETypeObject,Optional<String>> instanceName, DbMetaDataType dbType){
 //        return new ExprToSql(instanceName,dbType).visit(e);
 //    }
 //

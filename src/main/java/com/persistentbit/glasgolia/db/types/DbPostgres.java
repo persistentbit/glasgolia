@@ -3,7 +3,7 @@ package com.persistentbit.glasgolia.db.types;
 import com.persistentbit.core.collections.PByteList;
 
 /**
- * A DbDataType for a PostgreSQL database.
+ * A DbMetaDataType for a PostgreSQL database.
  *
  * @author Peter Muys
  * @see DbType

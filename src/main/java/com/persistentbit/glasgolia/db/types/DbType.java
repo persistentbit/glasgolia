@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * A DbDataType instance represent a database type like postgres, mysql, h2,...<br>
- * A DbDataType contains database type specific mappings for working with Sql.<br>
+ * A DbMetaDataType instance represent a database type like postgres, mysql, h2,...<br>
+ * A DbMetaDataType contains database type specific mappings for working with Sql.<br>
  * @author Peter Muys
  * @since 19/07/2016
  */
