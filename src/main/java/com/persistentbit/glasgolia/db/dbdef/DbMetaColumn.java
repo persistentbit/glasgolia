@@ -1,8 +1,10 @@
 package com.persistentbit.glasgolia.db.dbdef;
 
 import com.persistentbit.core.Nullable;
+import com.persistentbit.core.function.ThrowingFunction;
 import com.persistentbit.core.javacodegen.annotations.CaseClass;
 import com.persistentbit.core.javacodegen.annotations.Generated;
+import com.persistentbit.core.result.Result;
 import com.persistentbit.core.utils.UString;
 import com.persistentbit.core.utils.builders.NOT;
 import com.persistentbit.core.utils.builders.SET;
@@ -18,21 +20,21 @@ import java.util.function.Function;
  * @since 3/06/17
  */
 @CaseClass
-public class DbColumn {
-	private  final String         name;
-	private  final DbMetaDataType type;
+public class DbMetaColumn{
+	private  final	String	name;
+	private  final	DbMetaDataType	type;
 	@Nullable
-	private  final String         comment;
+	private  final	String	comment;
 	@Nullable
-	private  final String         defaultValue;
+	private  final	String	defaultValue;
 	
 	@Generated
 	@SuppressWarnings("unchecked")
 	static public class Builder<_T1, _T2> {
-		private String         name;
-		private DbMetaDataType type;
-		private String         comment;
-		private String         defaultValue;
+		private	String	name;
+		private	DbMetaDataType	type;
+		private	String	comment;
+		private	String	defaultValue;
 		
 		
 		public  Builder<SET, _T2>	setName(String name){
@@ -54,7 +56,7 @@ public class DbColumn {
 	}
 	
 	@Generated
-	public DbColumn(String name, DbMetaDataType type, @Nullable String comment, @Nullable String defaultValue){
+	public DbMetaColumn(String name, DbMetaDataType type, @Nullable String comment, @Nullable String defaultValue){
 			this.name = Objects.requireNonNull(name, "name can not be null");
 			this.type = Objects.requireNonNull(type, "type can not be null");
 			this.comment = comment;
@@ -69,30 +71,30 @@ public class DbColumn {
 		return this.name;
 	}
 	/**
-	 * Create a copy of this DbColumn object with a new value for field {@link #name}.<br>
+	 * Create a copy of this DbMetaColumn object with a new value for field {@link #name}.<br>
 	 * @param name The new value for field {@link #name}
-	 * @return A new instance of {@link DbColumn}
+	 * @return A new instance of {@link DbMetaColumn}
 	 */
 	@Generated
-	public  DbColumn	withName(String name){
-		return new DbColumn(name, type, comment, defaultValue);
+	public DbMetaColumn withName(String name){
+		return new DbMetaColumn(name, type, comment, defaultValue);
 	}
 	/**
 	 * Get the value of field {@link #type}.<br>
 	 * @return {@link #type}
 	 */
 	@Generated
-	public DbMetaDataType getType(){
+	public  DbMetaDataType	getType(){
 		return this.type;
 	}
 	/**
-	 * Create a copy of this DbColumn object with a new value for field {@link #type}.<br>
+	 * Create a copy of this DbMetaColumn object with a new value for field {@link #type}.<br>
 	 * @param type The new value for field {@link #type}
-	 * @return A new instance of {@link DbColumn}
+	 * @return A new instance of {@link DbMetaColumn}
 	 */
 	@Generated
-	public  DbColumn	withType(DbMetaDataType type){
-		return new DbColumn(name, type, comment, defaultValue);
+	public DbMetaColumn withType(DbMetaDataType type){
+		return new DbMetaColumn(name, type, comment, defaultValue);
 	}
 	/**
 	 * Get the value of field {@link #comment}.<br>
@@ -103,13 +105,13 @@ public class DbColumn {
 		return Optional.ofNullable(this.comment);
 	}
 	/**
-	 * Create a copy of this DbColumn object with a new value for field {@link #comment}.<br>
+	 * Create a copy of this DbMetaColumn object with a new value for field {@link #comment}.<br>
 	 * @param comment The new value for field {@link #comment}
-	 * @return A new instance of {@link DbColumn}
+	 * @return A new instance of {@link DbMetaColumn}
 	 */
 	@Generated
-	public  DbColumn	withComment(@Nullable String comment){
-		return new DbColumn(name, type, comment, defaultValue);
+	public DbMetaColumn withComment(@Nullable String comment){
+		return new DbMetaColumn(name, type, comment, defaultValue);
 	}
 	/**
 	 * Get the value of field {@link #defaultValue}.<br>
@@ -120,20 +122,20 @@ public class DbColumn {
 		return Optional.ofNullable(this.defaultValue);
 	}
 	/**
-	 * Create a copy of this DbColumn object with a new value for field {@link #defaultValue}.<br>
+	 * Create a copy of this DbMetaColumn object with a new value for field {@link #defaultValue}.<br>
 	 * @param defaultValue The new value for field {@link #defaultValue}
-	 * @return A new instance of {@link DbColumn}
+	 * @return A new instance of {@link DbMetaColumn}
 	 */
 	@Generated
-	public  DbColumn	withDefaultValue(@Nullable String defaultValue){
-		return new DbColumn(name, type, comment, defaultValue);
+	public DbMetaColumn withDefaultValue(@Nullable String defaultValue){
+		return new DbMetaColumn(name, type, comment, defaultValue);
 	}
 	@Generated
 	@Override
 	public  boolean	equals(@Nullable Object o){
 		if(this == o) return true;
-		if(o instanceof DbColumn == false) return false;
-		DbColumn obj = (DbColumn)o;
+		if(o instanceof DbMetaColumn == false) return false;
+		DbMetaColumn obj = (DbMetaColumn)o;
 		if(!name.equals(obj.name)) return false;
 		if(!type.equals(obj.type)) return false;
 		if(comment != null ? !comment.equals(obj.comment) : obj.comment!= null) return false;
@@ -153,7 +155,7 @@ public class DbColumn {
 	@Generated
 	@Override
 	public  String	toString(){
-		return "DbColumn[" + 
+		return "DbMetaColumn[" +
 			"name=" + (name == null ? "null" : '\"' + UString.present(UString.escapeToJavaString(name),32,"...") + '\"') +
 			", type=" + type + 
 			", comment=" + (comment == null ? "null" : '\"' + UString.present(UString.escapeToJavaString(comment),32,"...") + '\"') +
@@ -161,18 +163,17 @@ public class DbColumn {
 			']';
 	}
 	@Generated
-	public  DbColumn	updated(Function<Builder,Builder> updater){
+	public DbMetaColumn updated(Function<Builder,Builder> updater){
 		Builder b = new Builder();
 		b.setName(this.name);
 		b.setType(this.type);
 		b.setComment(this.comment);
 		b.setDefaultValue(this.defaultValue);
 		b = updater.apply(b);
-		return new DbColumn(b.name, b.type, b.comment, b.defaultValue);
+		return new DbMetaColumn(b.name, b.type, b.comment, b.defaultValue);
 	}
 	@Generated
-	public  static DbColumn	build(Function<Builder<NOT,NOT>, Builder<SET, SET>> setter){
-		Builder b = setter.apply(new Builder());
-		return new DbColumn(b.name, b.type, b.comment, b.defaultValue);
+	public  static Result<DbMetaColumn>	buildExc(ThrowingFunction<Builder<NOT,NOT>, Builder<SET,SET>,Exception> setter){
+		return setter.applyResult(new Builder<>()).mapExc(b -> new DbMetaColumn(b.name, b.type, b.comment, b.defaultValue));
 	}
 }

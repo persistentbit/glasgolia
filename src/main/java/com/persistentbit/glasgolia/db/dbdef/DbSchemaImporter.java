@@ -25,7 +25,10 @@ public class DbSchemaImporter{
 	public static DbWork<PList<DbMetaSchema>> getSchemas(DbMetaCatalog catalog) {
 		return DbWork.function(catalog).code(log -> ctx -> ctx.get().<PList<DbMetaSchema>>flatMapExc(con ->{
 			return UJdbc.getList(con.getMetaData().getSchemas(catalog.getName().orElse(""),null),
-								 rs -> new DbMetaSchema(catalog, rs.getString("TABLE_SCHEM"))
+								 rs -> DbMetaSchema.buildExc(b -> b
+									  .setCatalog(catalog)
+									  .setName(rs.getString("TABLE_SCHEM"))
+								 ).orElseThrow()
 			);
 
 		}));
@@ -40,8 +43,8 @@ public class DbSchemaImporter{
 		}));
 	}
 
-	public static DbWork<PList<DbTable>> getTables(DbMetaSchema schema, String typeName){
-		return DbWork.function(schema,typeName).code(log -> ctx -> ctx.get().<PList<DbTable>>flatMapExc(con -> {
+	public static DbWork<PList<DbMetaTable>> getTables(DbMetaSchema schema, String typeName){
+		return DbWork.function(schema,typeName).code(log -> ctx -> ctx.get().<PList<DbMetaTable>>flatMapExc(con -> {
 			return UJdbc.getList(con.getMetaData().getTables(
 				schema.getCatalog().getName().orElse(""),
 				schema.getName().orElse(""),
@@ -59,7 +62,7 @@ public class DbSchemaImporter{
 				//String type_name = rs.getString("TYPE_NAME");
 				//String self_referencing_col_name = rs.getString("SELF_REFERENCING_COL_NAME");
 				//String ref_generation = rs.getString("REF_GENERATION");
-				return new DbTable(table_type,schema,table_name)
+				return new DbMetaTable(table_type, schema, table_name)
 					.comment(remarks);
 			});
 		}));
@@ -95,13 +98,13 @@ public class DbSchemaImporter{
 					String tableType = rs.getString("TABLE_TYPE");
 					String tableComment = rs.getString("REMARKS");
 					log.info("Found Table " + tableName);
-					DbTable.Type setType;
+					DbMetaTable.Type setType;
 					switch(tableType){
-						case "TABLE": setType = DbTable.Type.table;break;
-						case "VIEW": setType = DbTable.Type.view;break;
+						case "TABLE": setType = DbMetaTable.Type.table;break;
+						case "VIEW": setType = DbMetaTable.Type.view;break;
 						default: return Result.failure("Don't know tabletype " + tableType);
 					}
-					DbTable set = new DbTable(setType,tableName).comment(tableComment);
+					DbMetaTable set = new DbMetaTable(setType,tableName).comment(tableComment);
 
 				}
 				return Result.success(schema);
@@ -110,7 +113,7 @@ public class DbSchemaImporter{
 		}));
 	}
 
-	private Result<DbTable> importSet(DbMetaSchema schema, DbTable set){
+	private Result<DbMetaTable> importSet(DbMetaSchema schema, DbMetaTable set){
 		throw new ToDo();
 	}
 

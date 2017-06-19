@@ -8,8 +8,8 @@ import com.persistentbit.glasgolia.db.connections.DbConnector;
 import com.persistentbit.glasgolia.db.connections.DbSimpleConnector;
 import com.persistentbit.glasgolia.db.dbdef.DbMetaCatalog;
 import com.persistentbit.glasgolia.db.dbdef.DbMetaSchema;
+import com.persistentbit.glasgolia.db.dbdef.DbMetaTable;
 import com.persistentbit.glasgolia.db.dbdef.DbSchemaImporter;
-import com.persistentbit.glasgolia.db.dbdef.DbTable;
 import com.persistentbit.glasgolia.db.types.DbPostgres;
 import com.persistentbit.glasgolia.db.work.DbRun;
 import com.persistentbit.glasgolia.db.work.DbWork;
@@ -24,7 +24,7 @@ import java.io.PrintStream;
  */
 public class PostgresImport{
 
-	public static DbWork<OK> dumpTable(PrintStream out, DbTable table){
+	public static DbWork<OK> dumpTable(PrintStream out, DbMetaTable table){
 		return ctx -> {
 			out.println("TABLE  " + table);
 			return OK.result;
@@ -35,7 +35,7 @@ public class PostgresImport{
 		return ctx -> {
 			out.println("SCHEMA " + schema.getFullName());
 			return DbSchemaImporter.getTables(schema,null).execute(ctx).flatMap(tables -> {
-				for(DbTable table : tables){
+				for(DbMetaTable table : tables){
 					Result<OK> res = dumpTable(out,table).executeNoExc(ctx);
 					if(res.isError()){
 						return res.map(v-> null);

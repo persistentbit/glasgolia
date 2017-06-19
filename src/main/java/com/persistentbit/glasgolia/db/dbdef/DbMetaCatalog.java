@@ -1,15 +1,13 @@
 package com.persistentbit.glasgolia.db.dbdef;
 
 import com.persistentbit.core.Nullable;
-import com.persistentbit.core.javacodegen.annotations.NoWith;
+import com.persistentbit.core.function.ThrowingFunction;
 import com.persistentbit.core.javacodegen.annotations.CaseClass;
-import com.persistentbit.core.utils.builders.NOT;
-import java.util.Optional;
-import java.lang.SuppressWarnings;
-import com.persistentbit.core.utils.UString;
-import com.persistentbit.core.javacodegen.annotations.NoGet;
-import com.persistentbit.core.utils.builders.SET;
 import com.persistentbit.core.javacodegen.annotations.Generated;
+import com.persistentbit.core.result.Result;
+import com.persistentbit.core.utils.UString;
+
+import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -87,8 +85,7 @@ public class DbMetaCatalog {
 		return new DbMetaCatalog(b.name);
 	}
 	@Generated
-	public  static DbMetaCatalog	build(Function<Builder<>, Builder<>> setter){
-		Builder b = setter.apply(new Builder());
-		return new DbMetaCatalog(b.name);
+	public  static Result<DbMetaCatalog>	buildExc(ThrowingFunction<Builder, Builder,Exception> setter){
+		return setter.applyResult(new Builder()).mapExc(b -> new DbMetaCatalog(b.name));
 	}
 }

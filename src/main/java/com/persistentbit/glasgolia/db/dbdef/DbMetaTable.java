@@ -11,21 +11,21 @@ import com.persistentbit.core.utils.BaseValueClass;
  * @author petermuys
  * @since 3/06/17
  */
-public class DbTable extends BaseValueClass{
+public class DbMetaTable extends BaseValueClass{
 	private final String       type;
 	private final DbMetaSchema schema;
 
-	private final String          name;
-	private final PList<DbColumn> columns;
-	private final PList<DbColumn> primKey;
+	private final String              name;
+	private final PList<DbMetaColumn> columns;
+	private final PList<DbMetaColumn> primKey;
 	@Nullable
-	private final String          comment;
+	private final String              comment;
 
 
-	public DbTable(String type, DbMetaSchema schema, String name,
-				   PList<DbColumn> columns,
-				   PList<DbColumn> primKey,
-				   String comment
+	public DbMetaTable(String type, DbMetaSchema schema, String name,
+					   PList<DbMetaColumn> columns,
+					   PList<DbMetaColumn> primKey,
+					   String comment
 	) {
 		this.type = type;
 		this.schema = schema;
@@ -35,16 +35,16 @@ public class DbTable extends BaseValueClass{
 		this.comment = comment;
 		checkNullFields();
 	}
-	public DbTable(String type, DbMetaSchema schema, String name){
+	public DbMetaTable(String type, DbMetaSchema schema, String name){
 		this(type,schema,name,PList.empty(),PList.empty(),null);
 	}
 
 
 
-	public DbTable add(DbColumn col){
+	public DbMetaTable add(DbMetaColumn col){
 		return copyWith("columns",columns.plus(col));
 	}
-	public DbColumn column(String name){
+	public DbMetaColumn column(String name){
 		return columns.find(c -> c.getName().equals(name)).get();
 	}
 
@@ -56,18 +56,18 @@ public class DbTable extends BaseValueClass{
 		return name;
 	}
 
-	public PList<DbColumn> getColumns() {
+	public PList<DbMetaColumn> getColumns() {
 		return columns;
 	}
 
-	public PList<DbColumn> getPrimKey() {
+	public PList<DbMetaColumn> getPrimKey() {
 		return primKey;
 	}
 
 	public Result<String> getComment() {
 		return Result.result(comment);
 	}
-	public DbTable comment(String comment){
+	public DbMetaTable comment(String comment){
 		return copyWith("comment",comment);
 	}
 }

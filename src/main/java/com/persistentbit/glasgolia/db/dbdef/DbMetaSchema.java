@@ -1,14 +1,18 @@
 package com.persistentbit.glasgolia.db.dbdef;
 
 import com.persistentbit.core.Nullable;
+import com.persistentbit.core.javacodegen.annotations.NoWith;
 import com.persistentbit.core.javacodegen.annotations.CaseClass;
-import com.persistentbit.core.javacodegen.annotations.Generated;
-import com.persistentbit.core.utils.UString;
+import com.persistentbit.core.result.Result;
 import com.persistentbit.core.utils.builders.NOT;
-import com.persistentbit.core.utils.builders.SET;
-
-import java.util.Objects;
 import java.util.Optional;
+import java.lang.SuppressWarnings;
+import com.persistentbit.core.function.ThrowingFunction;
+import com.persistentbit.core.utils.UString;
+import com.persistentbit.core.javacodegen.annotations.NoGet;
+import java.util.Objects;
+import com.persistentbit.core.utils.builders.SET;
+import com.persistentbit.core.javacodegen.annotations.Generated;
 import java.util.function.Function;
 
 /**
@@ -18,7 +22,7 @@ import java.util.function.Function;
  * @since 3/06/17
  */
 @CaseClass
-public class DbMetaSchema{
+public class DbMetaSchema {
 	private  final	DbMetaCatalog	catalog;
 	@Nullable
 	private  final	String	name;
@@ -147,8 +151,7 @@ public class DbMetaSchema{
 		return new DbMetaSchema(b.catalog, b.name, b.comment);
 	}
 	@Generated
-	public  static DbMetaSchema	build(Function<Builder<NOT>, Builder<SET>> setter){
-		Builder b = setter.apply(new Builder());
-		return new DbMetaSchema(b.catalog, b.name, b.comment);
+	public  static Result<DbMetaSchema>	buildExc(ThrowingFunction<Builder<NOT>, Builder<SET>,Exception> setter){
+		return setter.applyResult(new Builder<>()).mapExc(b -> new DbMetaSchema(b.catalog, b.name, b.comment));
 	}
 }
