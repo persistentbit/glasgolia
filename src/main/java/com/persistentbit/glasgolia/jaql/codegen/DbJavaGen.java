@@ -1,6 +1,15 @@
 package com.persistentbit.glasgolia.jaql.codegen;
 
 
+import com.persistentbit.core.javacodegen.GeneratedJavaSource;
+import com.persistentbit.core.javacodegen.JClass;
+import com.persistentbit.core.javacodegen.JField;
+import com.persistentbit.core.javacodegen.JJavaFile;
+import com.persistentbit.core.result.Result;
+import com.persistentbit.glasgolia.db.dbdef.DbMetaColumn;
+import com.persistentbit.glasgolia.db.dbdef.DbMetaSchema;
+import com.persistentbit.glasgolia.db.dbdef.DbMetaTable;
+
 /**
  * Generate Java code for a Database Substema
  *
@@ -9,6 +18,18 @@ package com.persistentbit.glasgolia.jaql.codegen;
  */
 public final class DbJavaGen{
 
+	static public Result<GeneratedJavaSource> generateStateClasses(DbJavaGenOptions options, DbMetaSchema schema, DbMetaTable table){
+		JClass cls = new JClass(options.javaName(table));
+		for(DbMetaColumn col : table.getColumns()){
+			JField field = new JField(options.javaName(table,col),options.javaType(table,col));
+			if(col.getType().isNullable()){
+				field = field.asNullable();
+			}
+			cls = cls.addField(field);
+		}
+		JJavaFile file = new JJavaFile(options.getPackage(schema,table));
+		return Result.success(new GeneratedJavaSource(file.getPackageName() + "." + cls.getClassName(),file.print()));
+	}
 
 //	private final JavaGenOptions   options;
 //	private final RSubstema        substema;
