@@ -68,7 +68,9 @@ public class DbBuilderImpl implements DbBuilder{
 						.filter(name -> name
 							.equalsIgnoreCase(dropAllSnippetName) == false && name
 							.equalsIgnoreCase(onceBeforeSnippetName) == false);
+					log.info("Found " + names.size() + " snippets");
 					for(String name : names) {
+						log.info("Executing snippet " + name);
 						Result<OK> snipOk =
 							executeSnip(name).execute(ctx);
 						if(snipOk.isPresent() == false) {

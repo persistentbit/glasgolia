@@ -9,7 +9,7 @@ import com.persistentbit.glasgolia.db.connections.DbSimpleConnector;
 import com.persistentbit.glasgolia.db.dbdef.DbMetaCatalog;
 import com.persistentbit.glasgolia.db.dbdef.DbMetaSchema;
 import com.persistentbit.glasgolia.db.dbdef.DbMetaTable;
-import com.persistentbit.glasgolia.db.dbdef.DbSchemaImporter;
+import com.persistentbit.glasgolia.db.dbdef.DbMetaDataImporter;
 import com.persistentbit.glasgolia.db.types.DbPostgres;
 import com.persistentbit.glasgolia.db.work.DbRun;
 import com.persistentbit.glasgolia.db.work.DbWork;
@@ -34,7 +34,7 @@ public class PostgresImport{
 	public static DbWork<OK> dumpSchema(PrintStream out, DbMetaSchema schema){
 		return ctx -> {
 			out.println("SCHEMA " + schema.getFullName());
-			return DbSchemaImporter.getTables(schema,null).execute(ctx).flatMap(tables -> {
+			return DbMetaDataImporter.getTables(schema,null).execute(ctx).flatMap(tables -> {
 				for(DbMetaTable table : tables){
 					Result<OK> res = dumpTable(out,table).executeNoExc(ctx);
 					if(res.isError()){
@@ -49,7 +49,7 @@ public class PostgresImport{
 	}
 
 	public static DbWork<OK> dumpCatalog(PrintStream out, DbMetaCatalog catalog){
-		return ctx -> DbSchemaImporter.getSchemas(catalog).execute(ctx).flatMap(schemas -> {
+		return ctx -> DbMetaDataImporter.getSchemas(catalog).execute(ctx).flatMap(schemas -> {
 			out.println("CATALOG " + catalog.getName().orElse(""));
 			for(DbMetaSchema schema : schemas){
 				Result<OK> res = dumpSchema(out,schema).executeNoExc(ctx);
@@ -64,7 +64,7 @@ public class PostgresImport{
 	}
 
 	public static DbWork<OK> dumpDb(PrintStream out){
-		return ctx -> DbSchemaImporter.getCatalogs().execute(ctx).flatMap(catalogs -> {
+		return ctx -> DbMetaDataImporter.getCatalogs().execute(ctx).flatMap(catalogs -> {
 			for(DbMetaCatalog catalog : catalogs){
 				Result<OK> res = dumpCatalog(out,catalog).executeNoExc(ctx);
 				if(res.isError()){

@@ -1,17 +1,16 @@
-SET SEARCH_PATH = 'testdb';
-
+-->>DropAll
 -- *************  DROP ALL  ********************
 DROP TABLE IF EXISTS types_test;
 drop type if EXISTS us_postal_code;
 DROP TYPE IF EXISTS FULL_NAME;
 DROP TYPE IF EXISTS ENUM_TEST;
-
+-->>create_all
 -- ************* CREATE ALL ********************
 CREATE TYPE ENUM_TEST AS ENUM ('enumval1', 'enumval2', 'enumval3');
 COMMENT ON TYPE ENUM_TEST IS 'My First enum in Postgres';
 
 CREATE TYPE FULL_NAME AS (
-  first_name VARCHAR,
+  first_name VARCHAR(50),
   last_name  VARCHAR
 );
 
@@ -65,5 +64,4 @@ CREATE TABLE types_test (
   an_xml xml,
   a_json json
 );
-
-select * from types_test;
+-->>

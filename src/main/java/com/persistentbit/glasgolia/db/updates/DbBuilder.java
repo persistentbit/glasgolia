@@ -42,16 +42,20 @@ public interface DbBuilder{
 	 * @return succes or failure
 	 */
 	default DbWork<OK> resetDb() {
-		return DbWork.function().code(l -> ctx -> {
-			boolean hasUpdates = hasUpdatesThatAreDone().execute(ctx).orElse(false);
-			l.info("Do we have updates? " + hasUpdates);
-			if(hasUpdates) {
-				l.info("Let's drop all");
-				l.add(dropAll().execute(ctx)).orElseThrow();
-			}
-			l.info("Now rebuild all..");
-			return buildOrUpdate().execute(ctx);
-		});
+		return DbWork.function().code(l -> ctx ->
+			hasUpdatesThatAreDone().execute(ctx)
+			.flatMapExc(hasUpdates -> {
+				l.info("Do we have updates? " + hasUpdates);
+
+			   	if(hasUpdates) {
+					l.info("Now rebuild all..");
+				   	l.info("Let's drop all");
+				   	l.add(dropAll().execute(ctx)).orElseThrow();
+			   	} else {
+			   		l.info("No Updates...");
+				}
+				return buildOrUpdate().execute(ctx);
+		   }));
 
 	}
 

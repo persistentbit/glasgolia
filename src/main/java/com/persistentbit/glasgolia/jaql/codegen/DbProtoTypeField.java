@@ -34,7 +34,7 @@ public class DbProtoTypeField extends BaseValueClass{
 		return new DbProtoTypeField(
 			name -> name.endsWith(suffix),
 			name -> name.substring(0,name.length()-suffix.length())
-		)
+		);
 	}
 
 

@@ -123,4 +123,5 @@ public class DbMetaDataType extends BaseValueClass{
 	public static final DbMetaDataType sLongNVarChar  = new DbMetaDataType(Types.LONGNVARCHAR);
 	public static final DbMetaDataType sSqlXml        = new DbMetaDataType(Types.SQLXML);
 	public static final DbMetaDataType sJavaObject    = new DbMetaDataType(Types.JAVA_OBJECT);
+	public static final DbMetaDataType sStruct	      = new DbMetaDataType(Types.STRUCT);
 }

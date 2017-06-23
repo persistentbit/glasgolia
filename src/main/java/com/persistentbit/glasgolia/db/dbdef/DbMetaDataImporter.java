@@ -1,6 +1,7 @@
 package com.persistentbit.glasgolia.db.dbdef;
 
 import com.persistentbit.core.collections.PList;
+import com.persistentbit.core.collections.PStream;
 import com.persistentbit.core.exceptions.ToDo;
 import com.persistentbit.core.result.Result;
 import com.persistentbit.glasgolia.db.work.DbWork;
@@ -12,7 +13,7 @@ import com.persistentbit.glasgolia.nativesql.UJdbc;
  * @author petermuys
  * @since 3/06/17
  */
-public class DbSchemaImporter{
+public class DbMetaDataImporter{
 
 	public static DbWork<PList<DbMetaCatalog>> getCatalogs(){
 		return DbWork.function().code(log -> ctx -> ctx.get().<PList<DbMetaCatalog>>flatMapExc(con ->{
@@ -32,6 +33,16 @@ public class DbSchemaImporter{
 			);
 
 		}));
+	}
+
+	public static DbWork<PList<DbMetaSchema>> getAllSchemas(){
+		return DbWork.function().code(log -> ctx ->
+			getCatalogs().execute(ctx)
+			.flatMap( catList ->
+				Result.fromSequence(
+					catList.mapExc(cat -> getSchemas(cat).execute(ctx))
+			    ).map(PStream::<DbMetaSchema>flatten).map(PStream::plist)
+			));
 	}
 
 	public static DbWork<PList<String>> getTableTypes(DbMetaSchema schema){
