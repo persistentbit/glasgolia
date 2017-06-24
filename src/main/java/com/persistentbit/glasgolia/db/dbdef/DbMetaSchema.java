@@ -23,11 +23,11 @@ import java.util.function.Function;
  */
 @CaseClass
 public class DbMetaSchema {
-	private  final	DbMetaCatalog	catalog;
+	public  final	DbMetaCatalog	catalog;
 	@Nullable
-	private  final	String	name;
+	public  final	String	name;
 	@Nullable
-	private  final	String	comment;
+	public  final	String	comment;
 	
 	@Generated
 	@SuppressWarnings("unchecked")
@@ -151,6 +151,13 @@ public class DbMetaSchema {
 		return new DbMetaSchema(b.catalog, b.name, b.comment);
 	}
 	@Generated
+	@SuppressWarnings("unchecked")
+	public  static DbMetaSchema	build(ThrowingFunction<Builder<NOT>, Builder<SET>, Exception> setter){
+		Builder b = setter.toNonChecked().apply(new Builder());
+		return new DbMetaSchema(b.catalog, b.name, b.comment);
+	}
+	@Generated
+	@SuppressWarnings("unchecked")
 	public  static Result<DbMetaSchema>	buildExc(ThrowingFunction<Builder<NOT>, Builder<SET>,Exception> setter){
 		return setter.applyResult(new Builder<>()).mapExc(b -> new DbMetaSchema(b.catalog, b.name, b.comment));
 	}

@@ -1,5 +1,6 @@
 package com.persistentbit.glasgolia.db.dbdef;
 
+import com.persistentbit.core.Nullable;
 import com.persistentbit.core.collections.PList;
 import com.persistentbit.core.collections.PStream;
 import com.persistentbit.core.exceptions.ToDo;
@@ -47,14 +48,18 @@ public class DbMetaDataImporter{
 
 	public static DbWork<PList<String>> getTableTypes(DbMetaSchema schema){
 		return DbWork.function(schema).code(log -> ctx -> ctx.get().<PList<String>>flatMapExc(con ->{
-			return UJdbc.getList(con.getMetaData().getSchemas(),
+			return UJdbc.getList(con.getMetaData().getTableTypes(),
 								 rs -> rs.getString("TABLE_TYPE")
 			);
 
 		}));
 	}
 
-	public static DbWork<PList<DbMetaTable>> getTables(DbMetaSchema schema, String typeName){
+	public static DbWork<PList<DbMetaTable>> getTables(DbMetaSchema schema){
+		return getTables(schema,null);
+	}
+
+	public static DbWork<PList<DbMetaTable>> getTables(DbMetaSchema schema, @Nullable  String typeName){
 		return DbWork.function(schema,typeName).code(log -> ctx -> ctx.get().<PList<DbMetaTable>>flatMapExc(con -> {
 			return UJdbc.getList(con.getMetaData().getTables(
 				schema.getCatalog().getName().orElse(""),
@@ -73,8 +78,12 @@ public class DbMetaDataImporter{
 				//String type_name = rs.getString("TYPE_NAME");
 				//String self_referencing_col_name = rs.getString("SELF_REFERENCING_COL_NAME");
 				//String ref_generation = rs.getString("REF_GENERATION");
-				return new DbMetaTable(table_type, schema, table_name)
-					.comment(remarks);
+				return DbMetaTable.build(b -> b
+					.setType(table_type)
+					.setSchema(schema)
+					.setName(table_name)
+					.setComment(remarks)
+				);
 			});
 		}));
 	}

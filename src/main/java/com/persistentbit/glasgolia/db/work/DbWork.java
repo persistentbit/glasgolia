@@ -9,7 +9,6 @@ import com.persistentbit.core.result.Result;
 import com.persistentbit.core.tuples.Tuple2;
 import com.persistentbit.glasgolia.db.transactions.DbTransaction;
 
-import java.sql.Connection;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -22,6 +21,10 @@ import java.util.function.Predicate;
 @FunctionalInterface
 public interface DbWork<R>{
 
+
+	default Result<R> transaction(DbRun runner){
+		return runner.run(this);
+	}
 
 	Result<R> execute(DbWorkContext ctx) throws Exception;
 

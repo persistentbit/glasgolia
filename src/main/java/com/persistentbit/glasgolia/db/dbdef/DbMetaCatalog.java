@@ -19,7 +19,7 @@ import java.util.function.Function;
 @CaseClass
 public class DbMetaCatalog {
 	@Nullable
-	private  final	String	name;
+	public  final	String	name;
 	
 	@Generated
 	@SuppressWarnings("unchecked")
@@ -85,6 +85,13 @@ public class DbMetaCatalog {
 		return new DbMetaCatalog(b.name);
 	}
 	@Generated
+	@SuppressWarnings("unchecked")
+	public  static DbMetaCatalog	build(ThrowingFunction<Builder, Builder, Exception> setter){
+		Builder b = setter.toNonChecked().apply(new Builder());
+		return new DbMetaCatalog(b.name);
+	}
+	@Generated
+	@SuppressWarnings("unchecked")
 	public  static Result<DbMetaCatalog>	buildExc(ThrowingFunction<Builder, Builder,Exception> setter){
 		return setter.applyResult(new Builder()).mapExc(b -> new DbMetaCatalog(b.name));
 	}

@@ -13,6 +13,14 @@ import java.sql.ResultSet;
  * @since 5/06/17
  */
 public class UJdbc{
+
+	/**
+	 * Transform a {@link ResultSet} in a {@link PList}
+	 * @param rs The result set
+	 * @param rowMapper  The Single ResultRow mapper
+	 * @param <R> The Type of the Result row
+	 * @return A Result with a {@link PList} of R Records
+	 */
 	public static <R> Result<PList<R>> getList(ResultSet rs, ThrowingFunction<ResultSet,R,Exception> rowMapper){
 		return Result.function().code(l-> {
 			try{
@@ -29,6 +37,14 @@ public class UJdbc{
 			}
 		});
 	}
+
+	/**
+	 * Get Maximum 1 Record from a {@link ResultSet}.
+	 * @param rs The ResultSet
+	 * @param rowMapper The mapper from one row in a {@link ResultSet} to R
+	 * @param <R> The Result Row Type
+	 * @return The Result R, Empty if no rows are found, Failure on more than 1 row
+	 */
 	public static <R> Result<R> getMaxOne(ResultSet rs, ThrowingFunction<ResultSet, R, Exception> rowMapper){
 		return Result.function().code(l-> {
 			try{

@@ -6,6 +6,7 @@ import com.persistentbit.core.testing.TestRunner;
 import com.persistentbit.glasgolia.db.dbdef.DbMetaCatalog;
 import com.persistentbit.glasgolia.db.dbdef.DbMetaDataImporter;
 import com.persistentbit.glasgolia.db.dbdef.DbMetaSchema;
+import com.persistentbit.glasgolia.db.dbdef.DbMetaTable;
 
 /**
  * TODOC
@@ -17,11 +18,20 @@ public class DbMetaImportTest extends AbstractDbTest{
 
 
 	static final TestCase	testPostgres = TestCase.name("TestPostgres import").code(tr -> {
-		resetPostgres().withLogs(log -> lp.print(log)).orElseThrow();
+		resetPostgres().doWithLogs(log -> lp.print(log)).orElseThrow();
 		PList<DbMetaCatalog> catalogs = tr.add(postgresRun.run(DbMetaDataImporter.getCatalogs())).orElseThrow();
 		PList<DbMetaSchema> schemas = catalogs.map(cat -> postgresRun.run(DbMetaDataImporter.getSchemas(cat)).orElseThrow()).<DbMetaSchema>flatten().plist();
 		schemas.forEach(schema -> tr.info("Found Schema " + schema));
 		tr.isEquals(schemas, postgresRun.run(DbMetaDataImporter.getAllSchemas()).orElseThrow());
+		DbMetaSchema glasschema = DbMetaDataImporter.getAllSchemas().transaction(postgresRun)
+													.orElseThrow()
+													.find(schema -> schema.getName().orElse("")
+																		  .equalsIgnoreCase("glasschema"))
+													.get();
+		PList<String> tableTypes = DbMetaDataImporter.getTableTypes(glasschema).transaction(postgresRun).orElseThrow();
+		tr.info("Table types: " + tableTypes);
+		PList<DbMetaTable> tables = DbMetaDataImporter.getTables(glasschema).transaction(postgresRun).orElseThrow();
+		tables.forEach(tab -> tr.info(tab));
 	});
 
 
