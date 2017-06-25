@@ -3,10 +3,7 @@ package com.persistentbit.glasgolia;
 import com.persistentbit.core.collections.PList;
 import com.persistentbit.core.testing.TestCase;
 import com.persistentbit.core.testing.TestRunner;
-import com.persistentbit.glasgolia.db.dbdef.DbMetaCatalog;
-import com.persistentbit.glasgolia.db.dbdef.DbMetaDataImporter;
-import com.persistentbit.glasgolia.db.dbdef.DbMetaSchema;
-import com.persistentbit.glasgolia.db.dbdef.DbMetaTable;
+import com.persistentbit.glasgolia.db.dbdef.*;
 
 /**
  * TODOC
@@ -30,8 +27,14 @@ public class DbMetaImportTest extends AbstractDbTest{
 													.get();
 		PList<String> tableTypes = DbMetaDataImporter.getTableTypes(glasschema).transaction(postgresRun).orElseThrow();
 		tr.info("Table types: " + tableTypes);
-		PList<DbMetaTable> tables = DbMetaDataImporter.getTables(glasschema).transaction(postgresRun).orElseThrow();
-		tables.forEach(tab -> tr.info(tab));
+		PList<DbMetaTable> tables = DbMetaDataImporter.getTables(glasschema,"TABLE").transaction(postgresRun).orElseThrow();
+		tables.forEach(tab -> {
+			tr.info("Table: " + tab.getName());
+			for(DbMetaColumn col : tab.getColumns()){
+				tr.info("\t" + col);
+			}
+			tr.info("");
+		});
 	});
 
 

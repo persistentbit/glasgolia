@@ -22,7 +22,7 @@ public final class DbJavaGen{
 		JClass cls = new JClass(options.javaName(table));
 		for(DbMetaColumn col : table.getColumns()){
 			JField field = new JField(options.javaName(table,col),options.javaType(table,col));
-			if(col.getType().isNullable()){
+			if(col.getType().getIsNullable()){
 				field = field.asNullable();
 			}
 			cls = cls.addField(field);

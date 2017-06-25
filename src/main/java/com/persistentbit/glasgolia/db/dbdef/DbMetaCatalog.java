@@ -21,6 +21,15 @@ public class DbMetaCatalog {
 	@Nullable
 	public  final	String	name;
 	
+	
+	@Generated
+	public DbMetaCatalog(@Nullable String name){
+			this.name = name;
+	}
+	@Generated
+	public DbMetaCatalog(){
+			this(null);
+	}
 	@Generated
 	@SuppressWarnings("unchecked")
 	static public class Builder {
@@ -31,11 +40,6 @@ public class DbMetaCatalog {
 			this.name	=	name;
 			return this;
 		}
-	}
-	
-	@Generated
-	public DbMetaCatalog(@Nullable String name){
-			this.name = name;
 	}
 	/**
 	 * Get the value of field {@link #name}.<br>

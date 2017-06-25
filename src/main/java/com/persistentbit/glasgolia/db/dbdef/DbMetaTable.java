@@ -2,19 +2,21 @@ package com.persistentbit.glasgolia.db.dbdef;
 
 import com.persistentbit.core.Nullable;
 import com.persistentbit.core.collections.PList;
-import com.persistentbit.core.function.ThrowingFunction;
+import com.persistentbit.core.javacodegen.annotations.NoWith;
 import com.persistentbit.core.javacodegen.annotations.CaseClass;
-import com.persistentbit.core.javacodegen.annotations.DefaultEmpty;
-import com.persistentbit.core.javacodegen.annotations.Generated;
 import com.persistentbit.core.result.Result;
-import com.persistentbit.core.utils.BaseValueClass;
-import com.persistentbit.core.utils.UString;
 import com.persistentbit.core.utils.builders.NOT;
-import com.persistentbit.core.utils.builders.SET;
-
-import java.util.Objects;
 import java.util.Optional;
+import java.lang.SuppressWarnings;
+import com.persistentbit.core.function.ThrowingFunction;
+import com.persistentbit.core.utils.UString;
+import com.persistentbit.core.utils.BaseValueClass;
+import com.persistentbit.core.javacodegen.annotations.NoGet;
+import java.util.Objects;
+import com.persistentbit.core.utils.builders.SET;
+import com.persistentbit.core.javacodegen.annotations.Generated;
 import java.util.function.Function;
+import com.persistentbit.core.javacodegen.annotations.DefaultEmpty;
 
 /**
  * TODOC
@@ -34,6 +36,20 @@ public class DbMetaTable extends BaseValueClass {
 	@Nullable
 	public  final	String	comment;
 	
+	
+	@Generated
+	public DbMetaTable(String type, DbMetaSchema schema, String name, @Nullable PList<DbMetaColumn> columns, @Nullable PList<DbMetaColumn> primKey, @Nullable String comment){
+			this.type = Objects.requireNonNull(type, "type can not be null");
+			this.schema = Objects.requireNonNull(schema, "schema can not be null");
+			this.name = Objects.requireNonNull(name, "name can not be null");
+			this.columns = columns == null ? PList.empty() : columns;
+			this.primKey = primKey == null ? PList.empty() : primKey;
+			this.comment = comment;
+	}
+	@Generated
+	public DbMetaTable(String type, DbMetaSchema schema, String name){
+			this(type, schema, name, null, null, null);
+	}
 	@Generated
 	@SuppressWarnings("unchecked")
 	static public class Builder<_T1, _T2, _T3> {
@@ -69,16 +85,6 @@ public class DbMetaTable extends BaseValueClass {
 			this.comment	=	comment;
 			return this;
 		}
-	}
-	
-	@Generated
-	public DbMetaTable(String type, DbMetaSchema schema, String name, @Nullable PList<DbMetaColumn> columns, @Nullable PList<DbMetaColumn> primKey, @Nullable String comment){
-			this.type = Objects.requireNonNull(type, "type can not be null");
-			this.schema = Objects.requireNonNull(schema, "schema can not be null");
-			this.name = Objects.requireNonNull(name, "name can not be null");
-			this.columns = columns == null ? PList.empty() : columns;
-			this.primKey = primKey == null ? PList.empty() : primKey;
-			this.comment = comment;
 	}
 	/**
 	 * Get the value of field {@link #type}.<br>

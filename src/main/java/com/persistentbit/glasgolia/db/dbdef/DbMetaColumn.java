@@ -1,17 +1,16 @@
 package com.persistentbit.glasgolia.db.dbdef;
 
 import com.persistentbit.core.Nullable;
-import com.persistentbit.core.javacodegen.annotations.NoWith;
-import com.persistentbit.core.javacodegen.annotations.CaseClass;
-import com.persistentbit.core.result.Result;
-import com.persistentbit.core.utils.builders.NOT;
-import java.lang.SuppressWarnings;
 import com.persistentbit.core.function.ThrowingFunction;
-import com.persistentbit.core.utils.UString;
-import com.persistentbit.core.javacodegen.annotations.NoGet;
-import java.util.Objects;
-import com.persistentbit.core.utils.builders.SET;
+import com.persistentbit.core.javacodegen.annotations.CaseClass;
 import com.persistentbit.core.javacodegen.annotations.Generated;
+import com.persistentbit.core.result.Result;
+import com.persistentbit.core.utils.UString;
+import com.persistentbit.core.utils.builders.NOT;
+import com.persistentbit.core.utils.builders.SET;
+
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -22,72 +21,50 @@ import java.util.function.Function;
  */
 @CaseClass
 public class DbMetaColumn {
-	/**
-	 * TODOC
-	 * 
-	 * @author petermuys
-	 * @since 3/06/17
-	 */
-	@CaseClass
 	public  final	String	name;
-	/**
-	 * TODOC
-	 * 
-	 * @author petermuys
-	 * @since 3/06/17
-	 */
-	@CaseClass
 	public  final	DbMetaDataType	type;
-	/**
-	 * TODOC
-	 * 
-	 * @author petermuys
-	 * @since 3/06/17
-	 */
-	@CaseClass
+	@Nullable
 	public  final	String	comment;
-	/**
-	 * TODOC
-	 * 
-	 * @author petermuys
-	 * @since 3/06/17
-	 */
-	@CaseClass
+	@Nullable
 	public  final	String	defaultValue;
 	
+	
+	@Generated
+	public DbMetaColumn(String name, DbMetaDataType type, @Nullable String comment, @Nullable String defaultValue){
+			this.name = Objects.requireNonNull(name, "name can not be null");
+			this.type = Objects.requireNonNull(type, "type can not be null");
+			this.comment = comment;
+			this.defaultValue = defaultValue;
+	}
+	@Generated
+	public DbMetaColumn(String name, DbMetaDataType type){
+			this(name, type, null, null);
+	}
 	@Generated
 	@SuppressWarnings("unchecked")
-	static public class Builder<_T1, _T2, _T3, _T4> {
+	static public class Builder<_T1, _T2> {
 		private	String	name;
 		private	DbMetaDataType	type;
 		private	String	comment;
 		private	String	defaultValue;
 		
 		
-		public  Builder<SET, _T2, _T3, _T4>	setName(String name){
+		public  Builder<SET, _T2>	setName(String name){
 			this.name	=	name;
-			return (Builder<SET, _T2, _T3, _T4>)this;
+			return (Builder<SET, _T2>)this;
 		}
-		public  Builder<_T1, SET, _T3, _T4>	setType(DbMetaDataType type){
+		public  Builder<_T1, SET>	setType(DbMetaDataType type){
 			this.type	=	type;
-			return (Builder<_T1, SET, _T3, _T4>)this;
+			return (Builder<_T1, SET>)this;
 		}
-		public  Builder<_T1, _T2, SET, _T4>	setComment(String comment){
+		public  Builder<_T1, _T2>	setComment(@Nullable String comment){
 			this.comment	=	comment;
-			return (Builder<_T1, _T2, SET, _T4>)this;
+			return this;
 		}
-		public  Builder<_T1, _T2, _T3, SET>	setDefaultValue(String defaultValue){
+		public  Builder<_T1, _T2>	setDefaultValue(@Nullable String defaultValue){
 			this.defaultValue	=	defaultValue;
-			return (Builder<_T1, _T2, _T3, SET>)this;
+			return this;
 		}
-	}
-	
-	@Generated
-	public DbMetaColumn(String name, DbMetaDataType type, String comment, String defaultValue){
-			this.name = Objects.requireNonNull(name, "name can not be null");
-			this.type = Objects.requireNonNull(type, "type can not be null");
-			this.comment = Objects.requireNonNull(comment, "comment can not be null");
-			this.defaultValue = Objects.requireNonNull(defaultValue, "defaultValue can not be null");
 	}
 	/**
 	 * Get the value of field {@link #name}.<br>
@@ -128,8 +105,8 @@ public class DbMetaColumn {
 	 * @return {@link #comment}
 	 */
 	@Generated
-	public  String	getComment(){
-		return this.comment;
+	public  Optional<String>	getComment(){
+		return Optional.ofNullable(this.comment);
 	}
 	/**
 	 * Create a copy of this DbMetaColumn object with a new value for field {@link #comment}.<br>
@@ -137,7 +114,7 @@ public class DbMetaColumn {
 	 * @return A new instance of {@link DbMetaColumn}
 	 */
 	@Generated
-	public  DbMetaColumn	withComment(String comment){
+	public  DbMetaColumn	withComment(@Nullable String comment){
 		return new DbMetaColumn(name, type, comment, defaultValue);
 	}
 	/**
@@ -145,8 +122,8 @@ public class DbMetaColumn {
 	 * @return {@link #defaultValue}
 	 */
 	@Generated
-	public  String	getDefaultValue(){
-		return this.defaultValue;
+	public  Optional<String>	getDefaultValue(){
+		return Optional.ofNullable(this.defaultValue);
 	}
 	/**
 	 * Create a copy of this DbMetaColumn object with a new value for field {@link #defaultValue}.<br>
@@ -154,7 +131,7 @@ public class DbMetaColumn {
 	 * @return A new instance of {@link DbMetaColumn}
 	 */
 	@Generated
-	public  DbMetaColumn	withDefaultValue(String defaultValue){
+	public  DbMetaColumn	withDefaultValue(@Nullable String defaultValue){
 		return new DbMetaColumn(name, type, comment, defaultValue);
 	}
 	@Generated
@@ -165,8 +142,8 @@ public class DbMetaColumn {
 		DbMetaColumn obj = (DbMetaColumn)o;
 		if(!name.equals(obj.name)) return false;
 		if(!type.equals(obj.type)) return false;
-		if(!comment.equals(obj.comment)) return false;
-		if(!defaultValue.equals(obj.defaultValue)) return false;
+		if(comment != null ? !comment.equals(obj.comment) : obj.comment!= null) return false;
+		if(defaultValue != null ? !defaultValue.equals(obj.defaultValue) : obj.defaultValue!= null) return false;
 		return true;
 	}
 	@Generated
@@ -201,13 +178,13 @@ public class DbMetaColumn {
 	}
 	@Generated
 	@SuppressWarnings("unchecked")
-	public  static DbMetaColumn	build(ThrowingFunction<Builder<NOT,NOT,NOT,NOT>, Builder<SET,SET,SET,SET>, Exception> setter){
+	public  static DbMetaColumn	build(ThrowingFunction<Builder<NOT,NOT>, Builder<SET,SET>, Exception> setter){
 		Builder b = setter.toNonChecked().apply(new Builder());
 		return new DbMetaColumn(b.name, b.type, b.comment, b.defaultValue);
 	}
 	@Generated
 	@SuppressWarnings("unchecked")
-	public  static Result<DbMetaColumn>	buildExc(ThrowingFunction<Builder<NOT,NOT,NOT,NOT>, Builder<SET,SET,SET,SET>,Exception> setter){
+	public  static Result<DbMetaColumn>	buildExc(ThrowingFunction<Builder<NOT,NOT>, Builder<SET,SET>,Exception> setter){
 		return setter.applyResult(new Builder<>()).mapExc(b -> new DbMetaColumn(b.name, b.type, b.comment, b.defaultValue));
 	}
 }

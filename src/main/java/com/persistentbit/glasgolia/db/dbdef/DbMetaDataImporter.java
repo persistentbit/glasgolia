@@ -61,7 +61,7 @@ public class DbMetaDataImporter{
 
 	public static DbWork<PList<DbMetaTable>> getTables(DbMetaSchema schema, @Nullable  String typeName){
 		return DbWork.function(schema,typeName).code(log -> ctx -> ctx.get().<PList<DbMetaTable>>flatMapExc(con -> {
-			return UJdbc.getList(con.getMetaData().getTables(
+			Result<PList<DbMetaTable>> tables = UJdbc.getList(con.getMetaData().getTables(
 				schema.getCatalog().getName().orElse(""),
 				schema.getName().orElse(""),
 				null,
@@ -85,6 +85,88 @@ public class DbMetaDataImporter{
 					.setComment(remarks)
 				);
 			});
+			return tables.flatMap(tableList -> {
+				return Result.fromSequence(tableList.mapExc(table -> loadColumns(table).execute(ctx))).map(l -> l.plist());
+			});
+		}));
+	}
+	/*
+	COLUMN_NAME String => column name
+DATA_TYPE int => SQL type from java.sql.Types
+TYPE_NAME String => Data source dependent type name, for a UDT the type name is fully qualified
+COLUMN_SIZE int => column size.
+BUFFER_LENGTH is not used.
+DECIMAL_DIGITS int => the number of fractional digits. Null is returned for data types where DECIMAL_DIGITS is not applicable.
+NUM_PREC_RADIX int => Radix (typically either 10 or 2)
+NULLABLE int => is NULL allowed.
+columnNoNulls - might not allow NULL values
+columnNullable - definitely allows NULL values
+columnNullableUnknown - nullability unknown
+REMARKS String => comment describing column (may be null)
+COLUMN_DEF String => default value for the column, which should be interpreted as a string when the value is enclosed in single quotes (may be null)
+SQL_DATA_TYPE int => unused
+SQL_DATETIME_SUB int => unused
+CHAR_OCTET_LENGTH int => for char types the maximum number of bytes in the column
+ORDINAL_POSITION int => index of column in table (starting at 1)
+IS_NULLABLE String => ISO rules are used to determine the nullability for a column.
+YES --- if the column can include NULLs
+NO --- if the column cannot include NULLs
+empty string --- if the nullability for the column is unknown
+SCOPE_CATALOG String => catalog of table that is the scope of a reference attribute (null if DATA_TYPE isn't REF)
+SCOPE_SCHEMA String => schema of table that is the scope of a reference attribute (null if the DATA_TYPE isn't REF)
+SCOPE_TABLE String => table name that this the scope of a reference attribute (null if the DATA_TYPE isn't REF)
+SOURCE_DATA_TYPE short => source type of a distinct type or user-generated Ref type, SQL type from java.sql.Types (null if DATA_TYPE isn't DISTINCT or user-generated REF)
+IS_AUTOINCREMENT String => Indicates whether this column is auto incremented
+YES --- if the column is auto incremented
+NO --- if the column is not auto incremented
+empty string --- if it cannot be determined whether the column is auto incremented
+IS_GENERATEDCOLUMN String => Indicates whether this is a generated column
+YES --- if this a generated column
+NO --- if this not a generated column
+empty string --- if it cannot be determined whether this is a generated column
+	 */
+	public static DbWork<DbMetaTable> loadColumns(DbMetaTable table){
+		return DbWork.function(table).code(log -> ctx -> ctx.get().flatMapExc(con -> {
+			Result<PList<DbMetaColumn>> columns =  UJdbc.getList(
+				con.getMetaData().getColumns(
+					table.getSchema().getCatalog().getName().orElse(""),
+					table.getSchema().getName().orElse(""),
+					table.getName(),null)
+				,rs -> {
+					String name = rs.getString("COLUMN_NAME");
+					int dataType = rs.getInt("DATA_TYPE");
+					String typeName = rs.getString("TYPE_NAME");
+					int columnSize = rs.getInt("COLUMN_SIZE");
+					int decimalDigits = rs.getInt("DECIMAL_DIGITS");
+					int nullable = rs.getInt("NULLABLE");
+					String remarks = rs.getString("REMARKS");
+					String column_def = rs.getString("COLUMN_DEF");
+					int charOctet_length = rs.getInt("CHAR_OCTET_LENGTH");
+					int ordinal_position = rs.getInt("ORDINAL_POSITION");
+					String isNullable = rs.getString("IS_NULLABLE");
+					//String scopeCatalog = rs.getString("SCOPE_CATALOG");
+					//String scopeSchema = rs.getString("SCOPE_SCHEMA");
+					//String scopeTable = rs.getString("SCOPE_TABLE");
+					int sourceDataType = rs.getInt("SOURCE_DATA_TYPE");
+					String isAutoIncrement = rs.getString("IS_AUTOINCREMENT");
+					//String isGeneratedColumn = rs.getString("IS_GENERATEDCOLUMN");
+					DbMetaDataType type = new DbMetaDataType(dataType)
+						   .withIsAutoIncrement(isAutoIncrement.equalsIgnoreCase("YES"))
+						   .withIsNullable(isNullable.equalsIgnoreCase("YES"))
+						   .withDbTypeName(typeName)
+						   .withColumnSize(columnSize)
+						   .withDecimalDigits(decimalDigits);
+
+					return DbMetaColumn.build(b -> b
+						.setComment(remarks)
+						.setDefaultValue(column_def)
+						.setName(name)
+						.setType(type)
+					);
+
+				}
+			);
+			return columns.map(cols -> table.withColumns(cols));
 		}));
 	}
 

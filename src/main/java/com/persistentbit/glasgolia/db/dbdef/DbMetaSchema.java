@@ -29,6 +29,17 @@ public class DbMetaSchema {
 	@Nullable
 	public  final	String	comment;
 	
+	
+	@Generated
+	public DbMetaSchema(DbMetaCatalog catalog, @Nullable String name, @Nullable String comment){
+			this.catalog = Objects.requireNonNull(catalog, "catalog can not be null");
+			this.name = name;
+			this.comment = comment;
+	}
+	@Generated
+	public DbMetaSchema(DbMetaCatalog catalog){
+			this(catalog, null, null);
+	}
 	@Generated
 	@SuppressWarnings("unchecked")
 	static public class Builder<_T1> {
@@ -49,13 +60,6 @@ public class DbMetaSchema {
 			this.comment	=	comment;
 			return this;
 		}
-	}
-	
-	@Generated
-	public DbMetaSchema(DbMetaCatalog catalog, @Nullable String name, @Nullable String comment){
-			this.catalog = Objects.requireNonNull(catalog, "catalog can not be null");
-			this.name = name;
-			this.comment = comment;
 	}
 	public  String	getFullName(){
 	    String res = catalog.getName().map(name -> name + ".").orElse("");
