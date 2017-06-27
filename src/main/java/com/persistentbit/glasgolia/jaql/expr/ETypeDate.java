@@ -28,11 +28,14 @@ public interface ETypeDate extends Expr<LocalDate>, MixinEq<ETypeDate>{
 	}
 
 
+
+
+	//***************************  BETWEEN
+
 	default ETypeBoolean between(Expr<LocalDate> left, LocalDate right) {
 		return between(left, Sql.val(right));
 	}
 
-	//***************************  BETWEEN
 	default ETypeBoolean between(Expr<LocalDate> left, Expr<LocalDate> right) {
 		return new ExprBetween<>(this, left, right);
 	}
