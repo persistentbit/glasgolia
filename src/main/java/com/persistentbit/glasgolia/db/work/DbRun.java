@@ -31,6 +31,10 @@ public class DbRun{
 		this.schema = schema;
 	}
 
+	public DbType getDbType() {
+		return dbType;
+	}
+
 	public static DbRun create(DbConnector connector, DbType type) {
 		return new DbRun(connector, type, null);
 	}

@@ -82,6 +82,8 @@ public interface DbType{
 	 */
 	String setCurrentSchemaStatement(String schema);
 
-
+	default String getQuotedNameIfNeeded(String name){
+		return "\"" + name + "\"";
+	}
 
 }

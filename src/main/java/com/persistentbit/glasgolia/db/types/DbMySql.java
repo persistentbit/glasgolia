@@ -57,4 +57,9 @@ public class DbMySql extends AbstractDbType{
 	public String asLiteralBlob(PByteList byteList) {
 		return "0x" + byteList.toHexString();
 	}
+
+	@Override
+	public String getQuotedNameIfNeeded(String name) {
+		return "`" + name + "`";
+	}
 }

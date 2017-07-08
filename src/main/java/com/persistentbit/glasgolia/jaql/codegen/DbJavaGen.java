@@ -1,10 +1,7 @@
 package com.persistentbit.glasgolia.jaql.codegen;
 
 
-import com.persistentbit.core.javacodegen.GeneratedJavaSource;
-import com.persistentbit.core.javacodegen.JClass;
-import com.persistentbit.core.javacodegen.JField;
-import com.persistentbit.core.javacodegen.JJavaFile;
+import com.persistentbit.core.javacodegen.*;
 import com.persistentbit.core.result.Result;
 import com.persistentbit.glasgolia.db.dbdef.DbMetaColumn;
 import com.persistentbit.glasgolia.db.dbdef.DbMetaSchema;
@@ -21,7 +18,12 @@ public final class DbJavaGen{
 	static public Result<GeneratedJavaSource> generateStateClasses(DbJavaGenOptions options, DbMetaSchema schema, DbMetaTable table){
 		JClass cls = new JClass(options.javaName(table));
 		for(DbMetaColumn col : table.getColumns()){
-			JField field = new JField(options.javaName(table,col),options.javaType(table,col));
+			DbColumnJavaGen columnJavaGen = options.javaType(table,col);
+			JField field = new JField(options.javaName(table,col),columnJavaGen.getFieldDef());
+			for(String importString : columnJavaGen.getImports()){
+				field = field.addImport(new JImport(importString));
+			}
+
 			if(col.getType().getIsNullable()){
 				field = field.asNullable();
 			}
