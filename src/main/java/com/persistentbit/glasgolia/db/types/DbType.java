@@ -1,6 +1,7 @@
 package com.persistentbit.glasgolia.db.types;
 
 import com.persistentbit.core.collections.PByteList;
+import com.persistentbit.core.collections.PList;
 import com.persistentbit.sql.PersistSqlException;
 
 import java.time.LocalDate;
@@ -85,5 +86,7 @@ public interface DbType{
 	default String getQuotedNameIfNeeded(String name){
 		return "\"" + name + "\"";
 	}
-
+	default PList<String> getDbMetaTypeNameForCustomTypes() {
+		return PList.val("TYPE");
+	}
 }

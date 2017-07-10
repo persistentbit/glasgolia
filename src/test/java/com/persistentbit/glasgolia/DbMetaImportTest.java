@@ -27,9 +27,25 @@ public class DbMetaImportTest extends AbstractDbTest{
 													.get();
 		PList<String> tableTypes = DbMetaDataImporter.getTableTypes(glasschema).transaction(postgresRun).orElseThrow();
 		tr.info("Table types: " + tableTypes);
-		PList<DbMetaTable> tables = DbMetaDataImporter.getTables(glasschema,"TABLE").transaction(postgresRun).orElseThrow();
+		PList<DbMetaTable> tables = DbMetaDataImporter.getTables(glasschema).transaction(postgresRun).orElseThrow();
 		tables.forEach(tab -> {
 			tr.info("Table: " + tab.getName());
+			for(DbMetaColumn col : tab.getColumns()){
+				tr.info("\t" + col);
+			}
+			tr.info("");
+		});
+		PList<DbMetaTable> views = DbMetaDataImporter.getViews(glasschema).transaction(postgresRun).orElseThrow();
+		views.forEach(tab -> {
+			tr.info("View: " + tab.getName());
+			for(DbMetaColumn col : tab.getColumns()){
+				tr.info("\t" + col);
+			}
+			tr.info("");
+		});
+		PList<DbMetaTable> types = DbMetaDataImporter.getTypes(glasschema).transaction(postgresRun).orElseThrow();
+		types.forEach(tab -> {
+			tr.info("Type: " + tab.getName());
 			for(DbMetaColumn col : tab.getColumns()){
 				tr.info("\t" + col);
 			}

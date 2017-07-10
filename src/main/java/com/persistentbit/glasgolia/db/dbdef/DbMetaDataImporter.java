@@ -56,7 +56,25 @@ public class DbMetaDataImporter{
 	}
 
 	public static DbWork<PList<DbMetaTable>> getTables(DbMetaSchema schema){
-		return getTables(schema,null);
+		return getTables(schema,"TABLE");
+	}
+
+	public static DbWork<PList<DbMetaTable>> getViews(DbMetaSchema schema) { return getTables(schema,"VIEW");}
+
+	public static DbWork<PList<DbMetaTable>> getTablesAndViews(DbMetaSchema schema){
+		return getTables(schema)
+			.combine(tables -> getViews(schema)).map(t -> t._1.plusAll(t._2));
+
+	}
+	public static DbWork<PList<DbMetaTable>> getTypes(DbMetaSchema schema){
+		return DbWork.function(schema).code(log -> ctx -> {
+			PList<DbMetaTable> res = PList.empty();
+
+			for(String typeName : ctx.getDbType().map(dbType-> dbType.getDbMetaTypeNameForCustomTypes()).orElseThrow()){
+				res = res.plusAll(getTables(schema,typeName).execute(ctx).orElseThrow());
+			}
+			return Result.success(res);
+		});
 	}
 
 	public static DbWork<PList<DbMetaTable>> getTables(DbMetaSchema schema, @Nullable  String typeName){
