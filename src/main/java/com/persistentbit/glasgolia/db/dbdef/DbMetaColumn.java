@@ -1,16 +1,18 @@
 package com.persistentbit.glasgolia.db.dbdef;
 
 import com.persistentbit.core.Nullable;
-import com.persistentbit.core.function.ThrowingFunction;
+import com.persistentbit.core.javacodegen.annotations.NoWith;
 import com.persistentbit.core.javacodegen.annotations.CaseClass;
-import com.persistentbit.core.javacodegen.annotations.Generated;
 import com.persistentbit.core.result.Result;
-import com.persistentbit.core.utils.UString;
 import com.persistentbit.core.utils.builders.NOT;
-import com.persistentbit.core.utils.builders.SET;
-
-import java.util.Objects;
 import java.util.Optional;
+import java.lang.SuppressWarnings;
+import com.persistentbit.core.function.ThrowingFunction;
+import com.persistentbit.core.utils.UString;
+import com.persistentbit.core.javacodegen.annotations.NoGet;
+import java.util.Objects;
+import com.persistentbit.core.utils.builders.SET;
+import com.persistentbit.core.javacodegen.annotations.Generated;
 import java.util.function.Function;
 
 /**

@@ -1,21 +1,17 @@
 package com.persistentbit.glasgolia.jaql.codegen;
 
 
-import com.persistentbit.core.javacodegen.*;
-import com.persistentbit.core.result.Result;
-import com.persistentbit.glasgolia.db.dbdef.DbMetaColumn;
-import com.persistentbit.glasgolia.db.dbdef.DbMetaSchema;
-import com.persistentbit.glasgolia.db.dbdef.DbMetaTable;
-
 /**
  * Generate Java code for a Database Substema
  *
  * @author Peter Muys
  * @since 14/09/16
  */
-public final class DbJavaGen{
+public  interface DbJavaGen{
 
-	static public Result<GeneratedJavaSource> generateStateClasses(DbJavaGenOptions options, DbMetaSchema schema, DbMetaTable table){
+
+
+	/*static public Result<GeneratedJavaSource> generateStateClasses(DbJavaGenOptions options, DbMetaSchema schema, DbMetaTable table){
 		JClass cls = new JClass(options.javaName(table));
 		for(DbMetaColumn col : table.getColumns()){
 			DbColumnJavaGen columnJavaGen = options.javaType(table,col);
@@ -31,7 +27,7 @@ public final class DbJavaGen{
 		}
 		JJavaFile file = new JJavaFile(options.getPackage(schema,table));
 		return Result.success(new GeneratedJavaSource(file.getPackageName() + "." + cls.getClassName(),file.print()));
-	}
+	}*/
 
 //	private final JavaGenOptions   options;
 //	private final RSubstema        substema;

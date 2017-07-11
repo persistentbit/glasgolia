@@ -1,13 +1,9 @@
 package com.persistentbit.glasgolia;
 
-import com.persistentbit.core.collections.PList;
-import com.persistentbit.core.javacodegen.GeneratedJavaSource;
 import com.persistentbit.core.testing.TestCase;
 import com.persistentbit.core.testing.TestRunner;
-import com.persistentbit.glasgolia.db.dbdef.*;
-import com.persistentbit.glasgolia.jaql.codegen.DbJavaGen;
-import com.persistentbit.glasgolia.jaql.codegen.DbJavaGenOptions;
-import com.persistentbit.glasgolia.jaql.codegen.DbJavaGenOptionsImpl;
+import com.persistentbit.glasgolia.jaql.codegen.posgresql.JavaGenTableSelection;
+import com.persistentbit.glasgolia.jaql.codegen.posgresql.PostgresJavaGen;
 
 /**
  * TODOC
@@ -19,7 +15,16 @@ public class DbJavaGenTest extends AbstractDbTest{
 
 	static final TestCase genStateClasses = TestCase.name("GenerateStateClasses").code(tr -> {
 		resetPostgres().doWithLogs(log -> lp.print(log)).orElseThrow();
-		PList<DbMetaCatalog> catalogs = tr.add(postgresRun.run(DbMetaDataImporter.getCatalogs())).orElseThrow();
+
+		PostgresJavaGen javaGen = new JavaGenTableSelection(postgresRun)
+				.addCatalogs(cat -> true)
+				.flatMap(sel -> sel.addSchemas(schema -> "glasschema".equalsIgnoreCase(schema.getName().orElse(null))))
+				 .flatMap(sel -> sel.addTablesAndViews(table -> true))
+				 .map(sel -> new PostgresJavaGen(sel))
+				 .orElseThrow();
+		tr.info(javaGen.getSelection().show().printToString());
+
+		/*PList<DbMetaCatalog> catalogs = tr.add(postgresRun.run(DbMetaDataImporter.getCatalogs())).orElseThrow();
 		PList<DbMetaSchema>  schemas  = catalogs.map(cat -> postgresRun.run(DbMetaDataImporter.getSchemas(cat)).orElseThrow()).<DbMetaSchema>flatten().plist();
 		DbMetaSchema glasschema = schemas.find(s -> s.getName().get().equalsIgnoreCase("glasschema")).get();
 		PList<DbMetaTable>   tables   = DbMetaDataImporter.getTables(glasschema, "TABLE").transaction(postgresRun).orElseThrow();
@@ -32,7 +37,8 @@ public class DbJavaGenTest extends AbstractDbTest{
 			//tr.info("");
 			GeneratedJavaSource javaSource = DbJavaGen.generateStateClasses(options, tab.getSchema(), tab).orElseThrow();
 			System.out.println(javaSource.getCode().printToString());
-		});
+		});*/
+
 	});
 
 	public void testAll() {
