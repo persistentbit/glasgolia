@@ -20,9 +20,11 @@ public class DbJavaGenTest extends AbstractDbTest{
 				.addCatalogs(cat -> true)
 				.flatMap(sel -> sel.addSchemas(schema -> "glasschema".equalsIgnoreCase(schema.getName().orElse(null))))
 				 .flatMap(sel -> sel.addTablesAndViews(table -> true))
-				 .map(sel -> new PostgresJavaGen(sel))
+				 .map(sel -> new PostgresJavaGen(sel,"com.persistentbit.glasgolia.postrgrestest"))
 				 .orElseThrow();
 		tr.info(javaGen.getSelection().show().printToString());
+		javaGen.generate().orElseThrow().forEach(gjf -> tr.info(gjf.getCode().printToString()));
+
 
 		/*PList<DbMetaCatalog> catalogs = tr.add(postgresRun.run(DbMetaDataImporter.getCatalogs())).orElseThrow();
 		PList<DbMetaSchema>  schemas  = catalogs.map(cat -> postgresRun.run(DbMetaDataImporter.getSchemas(cat)).orElseThrow()).<DbMetaSchema>flatten().plist();

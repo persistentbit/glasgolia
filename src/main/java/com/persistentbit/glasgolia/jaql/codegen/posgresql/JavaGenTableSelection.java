@@ -87,10 +87,10 @@ public class JavaGenTableSelection {
 	                        tablesAndViews.filter(t -> t.getSchema().equals(schema)).forEach(table -> {
 	                            tout.println("Table " + table.getName() + ": " + table);
 	                            tout.indent(cout -> {
-	                            	table.getColumns().forEach(col -> {
-	                            		cout.println(col.getName() + ": " + col);
-									});
-								});
+	                                table.getColumns().forEach(col -> {
+	                                    cout.println(col.getName() + ": " + col);
+	                                });
+	                            });
 	                        });
 	                    });
 	                });
