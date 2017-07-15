@@ -1,9 +1,9 @@
 package com.persistentbit.glasgolia.jaql.customtypes;
 
 import com.persistentbit.core.Nullable;
-import java.math.BigDecimal;
 import com.persistentbit.core.javacodegen.annotations.NoWith;
 import com.persistentbit.core.javacodegen.annotations.CaseClass;
+import com.persistentbit.core.utils.UString;
 import com.persistentbit.core.javacodegen.annotations.NoBuilder;
 import java.util.Objects;
 import com.persistentbit.core.javacodegen.annotations.Generated;
@@ -12,17 +12,17 @@ import com.persistentbit.core.javacodegen.annotations.Generated;
  * TODOC
  * 
  * @author petermuys
- * @since 14/07/17
+ * @since 15/07/17
  */
 @CaseClass
-@NoWith
 @NoBuilder
-public class Money {
-	private  final	BigDecimal	value;
+@NoWith
+public class Xml {
+	private  final	String	value;
 	
 	
 	@Generated
-	public Money(BigDecimal value){
+	public Xml(String value){
 			this.value = Objects.requireNonNull(value, "value can not be null");
 	}
 	/**
@@ -30,15 +30,15 @@ public class Money {
 	 * @return {@link #value}
 	 */
 	@Generated
-	public  BigDecimal	getValue(){
+	public  String	getValue(){
 		return this.value;
 	}
 	@Generated
 	@Override
 	public  boolean	equals(@Nullable Object o){
 		if(this == o) return true;
-		if(o instanceof Money == false) return false;
-		Money obj = (Money)o;
+		if(o instanceof Xml == false) return false;
+		Xml obj = (Xml)o;
 		if(!value.equals(obj.value)) return false;
 		return true;
 	}
@@ -52,8 +52,8 @@ public class Money {
 	@Generated
 	@Override
 	public  String	toString(){
-		return "Money[" + 
-			"value=" + value + 
+		return "Xml[" + 
+			"value=" + (value == null ? "null" : '\"' + UString.present(UString.escapeToJavaString(value),32,"...") + '\"') +
 			']';
 	}
 }

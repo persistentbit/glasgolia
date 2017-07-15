@@ -2,24 +2,25 @@ package com.persistentbit.glasgolia.jaql.codegen.posgresql;
 
 import com.persistentbit.core.Nullable;
 import com.persistentbit.core.collections.PList;
-import com.persistentbit.core.function.ThrowingFunction;
-import com.persistentbit.core.javacodegen.annotations.CaseClass;
-import com.persistentbit.core.javacodegen.annotations.DefaultValue;
-import com.persistentbit.core.javacodegen.annotations.Generated;
+import com.persistentbit.glasgolia.db.dbdef.DbMetaDataImporter;
 import com.persistentbit.core.javacodegen.annotations.NoWith;
+import com.persistentbit.core.javacodegen.annotations.CaseClass;
 import com.persistentbit.core.printing.PrintableText;
 import com.persistentbit.core.result.Result;
 import com.persistentbit.core.utils.builders.NOT;
-import com.persistentbit.core.utils.builders.SET;
-import com.persistentbit.glasgolia.db.dbdef.DbMetaCatalog;
-import com.persistentbit.glasgolia.db.dbdef.DbMetaDataImporter;
-import com.persistentbit.glasgolia.db.dbdef.DbMetaSchema;
 import com.persistentbit.glasgolia.db.dbdef.DbMetaTable;
-import com.persistentbit.glasgolia.db.work.DbRun;
-
-import java.util.Objects;
-import java.util.function.Function;
 import java.util.function.Predicate;
+import java.lang.SuppressWarnings;
+import com.persistentbit.core.function.ThrowingFunction;
+import com.persistentbit.core.javacodegen.annotations.NoGet;
+import java.util.Objects;
+import com.persistentbit.core.utils.builders.SET;
+import com.persistentbit.glasgolia.db.work.DbRun;
+import com.persistentbit.core.javacodegen.annotations.DefaultValue;
+import com.persistentbit.core.javacodegen.annotations.Generated;
+import java.util.function.Function;
+import com.persistentbit.glasgolia.db.dbdef.DbMetaCatalog;
+import com.persistentbit.glasgolia.db.dbdef.DbMetaSchema;
 
 /**
  * TODOC
