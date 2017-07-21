@@ -3,24 +3,26 @@ package com.persistentbit.glasgolia.jaql.codegen.posgresql;
 import com.persistentbit.core.collections.PBitList;
 import com.persistentbit.core.collections.PByteList;
 import com.persistentbit.core.collections.PList;
+import com.persistentbit.core.collections.PMap;
+import com.persistentbit.core.exceptions.ToDo;
 import com.persistentbit.core.javacodegen.GeneratedJavaSource;
 import com.persistentbit.core.javacodegen.JClass;
 import com.persistentbit.core.javacodegen.JField;
 import com.persistentbit.core.javacodegen.JJavaFile;
 import com.persistentbit.core.result.Result;
 import com.persistentbit.core.utils.UString;
-import com.persistentbit.glasgolia.db.dbdef.DbMetaColumn;
-import com.persistentbit.glasgolia.db.dbdef.DbMetaDataType;
-import com.persistentbit.glasgolia.db.dbdef.DbMetaTable;
+import com.persistentbit.glasgolia.db.dbdef.*;
 import com.persistentbit.glasgolia.db.work.DbRun;
+import com.persistentbit.glasgolia.db.work.DbWork;
 import com.persistentbit.glasgolia.jaql.customtypes.*;
 
 import java.math.BigDecimal;
-import java.sql.Types;
+import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -52,41 +54,136 @@ public class PostgresJavaGen{
 
 	public Result<PList<GeneratedJavaSource>>	generate(){
 
-		PList<DbMetaTable> tables = selection.getTablesAndViews();
-		PList<DbJavaTable> javaTables = tables.map(table -> generateJavaTable(table));
+		PList<DbMetaSchema> allSchemas = DbMetaDataImporter.getAllSchemas().transaction(run).orElseThrow();
+		PList<DbEnumType> enumTypes = loadEnumTypes(allSchemas).transaction(run).orElseThrow();
+		System.out.println("ALL ENUMS: " + enumTypes);
 
-		return Result.fromSequence(tables.map(table -> generateStateClass(table))).map(stream -> stream.plist());
+		PList<DbMetaTable> tables = selection.getTablesAndViews();
+
+		PList<DbCustomType> customTypes = selection
+			.getSchemas()
+			.map(schema -> DbMetaDataImporter.getTypes(schema).transaction(run).orElseThrow()
+				 .map(metaTable -> new DbCustomType(metaTable,nameTransformer.toJavaName(metaTable),PList.empty()))
+			)
+			.<DbCustomType>flatten()
+			.plist();
+		System.out.println("ALL CUSTOM TYPES: " + customTypes);
+		PList<DbMetaUDT> udts = selection
+			 .getSchemas()
+			 .map(schema -> DbMetaDataImporter.getUDT(schema,null,new int[] {Types.DISTINCT}).transaction(run).orElseThrow())
+			.<DbMetaUDT>flatten()
+			.plist();
+		udts.forEach(udt -> {
+			System.out.println("UDT: " + udt);
+		});
+		PList<DbJavaTable> javaTables = tables.map(table -> generateJavaTable(table,customTypes,enumTypes,udts));
+		//System.out.println( selection.getSchemas().map(schema ->
+		//	   DbMetaDataImporter.getTypes(schema).transaction(run)));
+
+
+		return Result.fromSequence(javaTables.map(table -> generateStateClass(table))).map(stream -> stream.plist());
 	}
 
-	private DbJavaTable	generateJavaTable(DbMetaTable table){
-		PList<DbJavaField> fields = table.getColumns().map(col -> getDbJavaField(table, col));
+	private DbWork<PList<DbEnumType>> loadEnumTypes(PList<DbMetaSchema> allSchemas){
+		return DbWork.function().code(log -> ctx -> ctx.get().mapExc(con -> {
+			String sql = "SELECT pg_type.typname AS enumtype,\n" +
+				"     pg_enum.enumlabel AS enumlabel,\n" +
+				"     pg_enum.enumsortorder as sortorder,\n" +
+				"     n.nspname as schema\n" +
+				" FROM pg_type\n" +
+				" JOIN pg_enum ON pg_enum.enumtypid = pg_type.oid\n" +
+				" join pg_catalog.pg_namespace n on n.oid = pg_type.typnamespace\n" +
+				"order by schema,enumtype,sortorder";
+			PMap<String,DbEnumType> enumTypes = PMap.empty();
+			try(Connection c = con){
+				try(PreparedStatement stat = c.prepareStatement(sql)){
+
+					try(ResultSet rs = stat.executeQuery()){
+						while(rs.next()){
+							String name = rs.getString("enumtype");
+							String value = rs.getString("enumlabel");
+							float sortOrder = rs.getFloat("sortorder");
+							String schemaName = rs.getString("schema");
+							DbMetaSchema schema = allSchemas.find(s -> s.getName().orElse("").equals(schemaName)).orElse(null);
+							if(schema == null){
+								throw new RuntimeException("Can't find schema " + schemaName + " for enum type " + name);
+							}
+							String fullName = schemaName + "." + name;
+							DbEnumType type = enumTypes.getOrDefault(fullName,null);
+							if(type == null){
+								//A new type
+								String packName = toJavaPackage(schema);
+								String clsName = nameTransformer.toJavaName(name);
+								type = new DbEnumType(schema,name,packName,clsName);
+							}
+							type = type.addValue(value,UString.toJavaIdentifier(value));
+							enumTypes = enumTypes.put(fullName,type);
+						}
+
+					}
+				}
+			}
+			return enumTypes.values().plist();
+		}));
+	}
+
+	private Result<DbEnumType> findEnumType(String enumDbName){
+		throw new ToDo();
+	}
+
+
+	private Optional<DbMetaTable> getCustomTypeMetaTable(DbMetaSchema usedInSchema,String dbTypeName){
+		//FIRST, CHECK THE CURRENT SCHEMA
+		for(DbMetaTable custom : DbMetaDataImporter.getTypes(usedInSchema).transaction(run).orElseThrow()){
+			if(custom.getName().equals(dbTypeName)){
+				return Optional.of(custom);
+			}
+		}
+		//NOW CHECK THE REST
+		PList<DbMetaSchema> allschemas = selection.getSchemas().filter(schema -> usedInSchema.equals(schema) == false);
+		for(DbMetaSchema schemaToCheck : allschemas){
+			for(DbMetaTable custom : DbMetaDataImporter.getTypes(schemaToCheck).transaction(run).orElseThrow()){
+				if(custom.getName().equals(dbTypeName)){
+					return Optional.of(custom);
+				}
+			}
+		}
+		return Optional.empty();
+	}
+
+	private DbJavaTable	generateJavaTable(DbMetaTable table,PList<DbCustomType> customTypes,PList<DbEnumType> enumTypes,PList<DbMetaUDT> domains){
+		PList<DbJavaField> fields = table.getColumns().map(col -> getDbJavaField(table, col,customTypes,enumTypes,domains));
+		String javaClassName = nameTransformer.toJavaName(table);
 		String packName = rootPackage
 			+ "." + nameTransformer.toJavaName(table.getSchema().getCatalog())
 			+ "." + nameTransformer.toJavaName(table.getSchema());
-		return new DbJavaTable(table,fields,packName + "." + nameTransformer.toJavaName(table));
+		return new DbJavaTable(table,fields, javaClassName,packName);
 	}
 
-	private Result<GeneratedJavaSource> generateStateClass(DbMetaTable table){
+	private Result<GeneratedJavaSource> generateStateClass(DbJavaTable table){
 		return Result.function(table).code(l -> {
-			JClass cls = new JClass(nameTransformer.toJavaName(table));
-
-			for(JField field : table.getColumns().map(col -> generateStateField(table,col))){
-				cls = cls.addField(field);
+			JClass cls = new JClass(table.getJavaClassName());
+			for(DbJavaField field : table.getJavaFields()){
+				cls = cls.addField(field.createJField());
 			}
 			cls = cls.makeCaseClass();
 
-			String packName = rootPackage
-				+ "." + nameTransformer.toJavaName(table.getSchema().getCatalog())
-				+ "." + nameTransformer.toJavaName(table.getSchema());
 
 
-			JJavaFile file = new JJavaFile(packName)
+
+			JJavaFile file = new JJavaFile(table.getPackName())
 				.addClass(cls);
 			return Result.success(file.toJavaSource());
 		});
 	}
+	private String toJavaPackage(DbMetaSchema schema){
+		return rootPackage
+			+ "." + nameTransformer.toJavaName(schema.getCatalog())
+			+ "." + nameTransformer.toJavaName(schema);
 
-	private DbJavaField	getDbJavaField(DbMetaTable table, DbMetaColumn column){
+	}
+
+	private DbJavaField	getDbJavaField(DbMetaTable table, DbMetaColumn column,PList<DbCustomType> customTypes, PList<DbEnumType> enumTypes, PList<DbMetaUDT> domains){
 		DbMetaDataType mt = column.getType();
 		String javaName = nameTransformer.toJavaName(table,column);
 		switch(mt.getSqlType()){
@@ -113,6 +210,10 @@ public class PostgresJavaGen{
 			case Types.CLOB:
 			case Types.LONGNVARCHAR:
 			case Types.NCLOB:
+				DbEnumType enumType = enumTypes.find(e -> e.getName().equals(mt.getDbTypeName().get())).orElse(null);
+				if(enumType != null){
+					return new DbJavaFieldEnum(column, javaName, enumType,nameTransformer.toJavaName(enumType.getName()),toJavaPackage(enumType.getSchema()));
+				}
 				return new DbJavaFieldCustomObject(column, javaName, String.class);
 			case Types.DATE:
 				return new DbJavaFieldCustomObject(column, javaName, LocalDate.class);
@@ -141,23 +242,26 @@ public class PostgresJavaGen{
 				}
 
 			case Types.TIME:
-				return new DbJavaFieldCustomObject(column, javaName, LocalTime.class);
+				return new DbJavaFieldCustomObject(column, javaName, Time.class);
 
 			case Types.TINYINT:
 				return new DbJavaFieldPrimitiveType(column, javaName, byte.class);
 			case Types.STRUCT:
-				return new DbJavaFieldStruct(column,javaName);
+				String pack = toJavaPackage(table.getSchema());
+				String clsName = nameTransformer.toJavaName(mt.getDbTypeName().get());
+				return new DbJavaFieldStruct(column,javaName,getCustomTypeMetaTable(table.getSchema(),mt.getDbTypeName().get()).get(),clsName,pack);
 			case Types.JAVA_OBJECT:
 				throw new RuntimeException("Not Implemented: JAVA_OBJECT for " + column );
 			case Types.SQLXML:
 				return new DbJavaFieldCustomObject(column, javaName, Xml.class);
 			case Types.DISTINCT:
-				return new DbJavaFieldDomain(column,javaName);
+				DbMetaUDT udt = domains.find(u -> u.getName().equals(mt.getDbTypeName().orElse(null))).get();
+				return new DbJavaFieldDomain(column,udt,javaName,nameTransformer.toJavaName(udt.getName()),this.toJavaPackage(udt.getSchema()));
 
 
 
 			case Types.ARRAY:
-				return createArrayField(javaName, table, column);
+				return createArrayField(javaName, table, column,customTypes,enumTypes,domains);
 
 			case Types.OTHER:
 				switch(column.getType().getDbTypeName().orElse(null)){
@@ -188,43 +292,125 @@ public class PostgresJavaGen{
 		}
 	}
 
-	private DbJavaFieldArray	createArrayField(String javaName, DbMetaTable table, DbMetaColumn column){
-		switch(column.getType().getDbTypeName().orElse(null)){
+	private DbJavaFieldArray	createArrayField(String javaName, DbMetaTable table, DbMetaColumn column,PList<DbCustomType> customTypes, PList<DbEnumType> enumTypes,PList<DbMetaUDT> udts){
+		String dbTypeName = column.getType().getDbTypeName().orElse(null);
+		DbJavaField element;
+		switch(dbTypeName){
 			case "_numeric":
+				element= new DbJavaFieldCustomObject(column, javaName, BigDecimal.class);
+				break;
 			case "_int8":
+				element = new DbJavaFieldPrimitiveType(column, javaName, long.class);
+				break;
 			case "_int4":
+				element = new DbJavaFieldPrimitiveType(column, javaName, int.class);
+				break;
 			case "_int2":
+				element = new DbJavaFieldPrimitiveType(column, javaName, short.class);
+				break;
 			case "_float4":
+				element = new DbJavaFieldPrimitiveType(column, javaName, float.class);
+				break;
 			case "_float8":
+				element = new DbJavaFieldPrimitiveType(column, javaName, double.class);
+				break;
 			case "_money":
-			case "_enum_test":
-			case "_full_name":
+				element = new DbJavaFieldCustomObject(column, javaName, Money.class);
+				break;
 			case "_varchar":
 			case "_text":
 			case "_bpchar":
+				element = new DbJavaFieldCustomObject(column, javaName, String.class);
+				break;
 			case "_bytea":
+				element = new DbJavaFieldCustomObject(column,javaName,PByteList.class);
+				break;
 			case "_timestamp":
+				element = new DbJavaFieldCustomObject(column, javaName, LocalDateTime.class);
+				break;
 			case "_timestamptz":
+				element = new DbJavaFieldCustomObject(column, javaName, ZonedDateTime.class);
+				break;
 			case "_date":
+				element = new DbJavaFieldCustomObject(column, javaName, LocalDate.class);
+				break;
 			case "_time":
+				element = new DbJavaFieldCustomObject(column, javaName, Time.class);
+				break;
 			case "_timetz":
+				element = new DbJavaFieldCustomObject(column, javaName, Time.class);
+				break;
 			case "_interval":
+				element = new DbJavaFieldCustomObject(column, javaName, Interval.class);
+				break;
 			case "_bool":
+				element = new DbJavaFieldPrimitiveType(column, javaName, boolean.class);
+				break;
 			case "_cidr":
+				element = new DbJavaFieldCustomObject(column, javaName, Cidr.class);
+				break;
 			case "_inet":
+				element = new DbJavaFieldCustomObject(column, javaName, Inet.class);
+				break;
 			case "_macaddr":
+				element = new DbJavaFieldCustomObject(column, javaName, Macaddr.class);
+				break;
 			case "_bit":
 			case "_varbit":
+				element = new DbJavaFieldCustomObject(column,javaName, PBitList.class);
+				break;
 			case "_tsvector":
+				element = new DbJavaFieldCustomObject(column, javaName, Tsvector.class);
+				break;
+
 			case "_tsquery":
+				element = new DbJavaFieldCustomObject(column, javaName, Tsquery.class);
+				break;
+
 			case "_uuid":
+				element = new DbJavaFieldCustomObject(column, javaName, UUID.class);
+				break;
 			case "_xml":
+				element = new DbJavaFieldCustomObject(column, javaName, Xml.class);
+				break;
+
 			case "_json":
-			case "us_postal_code":
-				return null;
+				element = new DbJavaFieldCustomObject(column, javaName, Json.class);
+				break;
+
+			//case "_enum_test":
+			//case "_full_name":
+			//case "us_postal_code":
+
 			default:
-				throw new RuntimeException("Don't know array element type " + column.getType().getDbTypeName() + " for " + column);
+				DbEnumType enumType = enumTypes.find(et -> ("_" + et.getName()).equals(dbTypeName)).orElse(null);
+				if(enumType != null){
+
+					element = new DbJavaFieldEnum(column,javaName,enumType,nameTransformer.toJavaName(enumType.getName()),toJavaPackage(enumType.getSchema()));
+					break;
+				}
+				DbCustomType customType = customTypes.find(ct -> ("_" + ct.getDefinition().getName()).equals(dbTypeName)).orElse(null);
+				if(customType != null){
+					String pack = toJavaPackage(customType.getDefinition().getSchema());
+					String clsName = nameTransformer.toJavaName(customType.getDefinition().getName());
+					element = new DbJavaFieldStruct(column,javaName,customType.getDefinition(),clsName,pack);
+					break;
+				}
+				/*if(dbTypeName.startsWith("_")){
+					DbMetaTable customTypeMeta = getCustomTypeMetaTable(table.getSchema(),dbTypeName).orElse(null);
+					if(customTypeMeta != null){
+						return new DbJavaFieldArray(column,javaName,new DbJavaFieldStruct(column,javaName,customTypeMeta));
+					}
+					//MUST BE AN ENUM
+				}
+
+
+				if(true) return null;*/
+
+				throw new RuntimeException("Don't know array element type " + dbTypeName + " for " + column);
 		}
+
+		return new DbJavaFieldArray(column,javaName, element);
 	}
 
 

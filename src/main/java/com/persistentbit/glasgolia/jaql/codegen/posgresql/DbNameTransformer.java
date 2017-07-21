@@ -26,17 +26,19 @@ public class DbNameTransformer {
 	private  final	Function<DbMetaSchema,String>	schemaNameToJava;
 	private  final	Function<DbMetaTable,String>	tableNameToJava;
 	private  final	BiFunction<DbMetaTable,DbMetaColumn,String>	columNameToJava;
+	private  final	Function<String,String>	customTypeNameToJava;
 	
 	
 	public DbNameTransformer(Function<String,String> generalDbNameToJava){
-	    this(cat -> generalDbNameToJava.apply(cat.getName().orElse("catalog")).toLowerCase(), schema -> generalDbNameToJava.apply(schema.getName().orElse("schema")).toLowerCase(), table -> generalDbNameToJava.apply(table.getName()), (tab, col) -> UString.firstLowerCase(generalDbNameToJava.apply(col.getName())));
+	    this(cat -> generalDbNameToJava.apply(cat.getName().orElse("catalog")).toLowerCase(), schema -> generalDbNameToJava.apply(schema.getName().orElse("schema")).toLowerCase(), table -> generalDbNameToJava.apply(table.getName()), (tab, col) -> UString.firstLowerCase(generalDbNameToJava.apply(col.getName())), generalDbNameToJava);
 	}
 	@Generated
-	public DbNameTransformer(Function<DbMetaCatalog,String> catalogNameToJava, Function<DbMetaSchema,String> schemaNameToJava, Function<DbMetaTable,String> tableNameToJava, BiFunction<DbMetaTable,DbMetaColumn,String> columNameToJava){
+	public DbNameTransformer(Function<DbMetaCatalog,String> catalogNameToJava, Function<DbMetaSchema,String> schemaNameToJava, Function<DbMetaTable,String> tableNameToJava, BiFunction<DbMetaTable,DbMetaColumn,String> columNameToJava, Function<String,String> customTypeNameToJava){
 			this.catalogNameToJava = Objects.requireNonNull(catalogNameToJava, "catalogNameToJava can not be null");
 			this.schemaNameToJava = Objects.requireNonNull(schemaNameToJava, "schemaNameToJava can not be null");
 			this.tableNameToJava = Objects.requireNonNull(tableNameToJava, "tableNameToJava can not be null");
 			this.columNameToJava = Objects.requireNonNull(columNameToJava, "columNameToJava can not be null");
+			this.customTypeNameToJava = Objects.requireNonNull(customTypeNameToJava, "customTypeNameToJava can not be null");
 	}
 	public  String	toJavaName(DbMetaCatalog catalog){
 	    return catalogNameToJava.apply(catalog);
@@ -49,6 +51,9 @@ public class DbNameTransformer {
 	}
 	public  String	toJavaName(DbMetaTable table, DbMetaColumn column){
 	    return columNameToJava.apply(table, column);
+	}
+	public  String	toJavaName(String customTypeName){
+	    return customTypeNameToJava.apply(customTypeName);
 	}
 	/**
 	 * Get the value of field {@link #catalogNameToJava}.<br>
@@ -65,7 +70,7 @@ public class DbNameTransformer {
 	 */
 	@Generated
 	public  DbNameTransformer	withCatalogNameToJava(Function<DbMetaCatalog,String> catalogNameToJava){
-		return new DbNameTransformer(catalogNameToJava, schemaNameToJava, tableNameToJava, columNameToJava);
+		return new DbNameTransformer(catalogNameToJava, schemaNameToJava, tableNameToJava, columNameToJava, customTypeNameToJava);
 	}
 	/**
 	 * Get the value of field {@link #schemaNameToJava}.<br>
@@ -82,7 +87,7 @@ public class DbNameTransformer {
 	 */
 	@Generated
 	public  DbNameTransformer	withSchemaNameToJava(Function<DbMetaSchema,String> schemaNameToJava){
-		return new DbNameTransformer(catalogNameToJava, schemaNameToJava, tableNameToJava, columNameToJava);
+		return new DbNameTransformer(catalogNameToJava, schemaNameToJava, tableNameToJava, columNameToJava, customTypeNameToJava);
 	}
 	/**
 	 * Get the value of field {@link #tableNameToJava}.<br>
@@ -99,7 +104,7 @@ public class DbNameTransformer {
 	 */
 	@Generated
 	public  DbNameTransformer	withTableNameToJava(Function<DbMetaTable,String> tableNameToJava){
-		return new DbNameTransformer(catalogNameToJava, schemaNameToJava, tableNameToJava, columNameToJava);
+		return new DbNameTransformer(catalogNameToJava, schemaNameToJava, tableNameToJava, columNameToJava, customTypeNameToJava);
 	}
 	/**
 	 * Get the value of field {@link #columNameToJava}.<br>
@@ -116,7 +121,24 @@ public class DbNameTransformer {
 	 */
 	@Generated
 	public  DbNameTransformer	withColumNameToJava(BiFunction<DbMetaTable,DbMetaColumn,String> columNameToJava){
-		return new DbNameTransformer(catalogNameToJava, schemaNameToJava, tableNameToJava, columNameToJava);
+		return new DbNameTransformer(catalogNameToJava, schemaNameToJava, tableNameToJava, columNameToJava, customTypeNameToJava);
+	}
+	/**
+	 * Get the value of field {@link #customTypeNameToJava}.<br>
+	 * @return {@link #customTypeNameToJava}
+	 */
+	@Generated
+	public  Function<String,String>	getCustomTypeNameToJava(){
+		return this.customTypeNameToJava;
+	}
+	/**
+	 * Create a copy of this DbNameTransformer object with a new value for field {@link #customTypeNameToJava}.<br>
+	 * @param customTypeNameToJava The new value for field {@link #customTypeNameToJava}
+	 * @return A new instance of {@link DbNameTransformer}
+	 */
+	@Generated
+	public  DbNameTransformer	withCustomTypeNameToJava(Function<String,String> customTypeNameToJava){
+		return new DbNameTransformer(catalogNameToJava, schemaNameToJava, tableNameToJava, columNameToJava, customTypeNameToJava);
 	}
 	@Generated
 	@Override
@@ -128,6 +150,7 @@ public class DbNameTransformer {
 		if(!schemaNameToJava.equals(obj.schemaNameToJava)) return false;
 		if(!tableNameToJava.equals(obj.tableNameToJava)) return false;
 		if(!columNameToJava.equals(obj.columNameToJava)) return false;
+		if(!customTypeNameToJava.equals(obj.customTypeNameToJava)) return false;
 		return true;
 	}
 	@Generated
@@ -138,6 +161,7 @@ public class DbNameTransformer {
 		result = 31 * result + (this.schemaNameToJava != null ? this.schemaNameToJava.hashCode() : 0);
 		result = 31 * result + (this.tableNameToJava != null ? this.tableNameToJava.hashCode() : 0);
 		result = 31 * result + (this.columNameToJava != null ? this.columNameToJava.hashCode() : 0);
+		result = 31 * result + (this.customTypeNameToJava != null ? this.customTypeNameToJava.hashCode() : 0);
 		return result;
 	}
 	@Generated
@@ -148,6 +172,7 @@ public class DbNameTransformer {
 			", schemaNameToJava=" + schemaNameToJava + 
 			", tableNameToJava=" + tableNameToJava + 
 			", columNameToJava=" + columNameToJava + 
+			", customTypeNameToJava=" + customTypeNameToJava + 
 			']';
 	}
 }

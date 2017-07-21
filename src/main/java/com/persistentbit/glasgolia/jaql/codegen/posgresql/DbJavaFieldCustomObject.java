@@ -3,12 +3,13 @@ package com.persistentbit.glasgolia.jaql.codegen.posgresql;
 import com.persistentbit.core.Nullable;
 import com.persistentbit.core.javacodegen.JField;
 import com.persistentbit.core.javacodegen.annotations.CaseClass;
-import com.persistentbit.glasgolia.db.dbdef.DbMetaColumn;
-import java.util.Optional;
-import com.persistentbit.core.utils.UString;
-import com.persistentbit.core.javacodegen.annotations.NoBuilder;
-import java.util.Objects;
 import com.persistentbit.core.javacodegen.annotations.Generated;
+import com.persistentbit.core.javacodegen.annotations.NoBuilder;
+import com.persistentbit.core.utils.UString;
+import com.persistentbit.glasgolia.db.dbdef.DbMetaColumn;
+
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * TODOC
@@ -39,7 +40,12 @@ public class DbJavaFieldCustomObject implements DbJavaField {
 	}
 	@Override
 	public  JField	createJField(){
-	    return null;
+	    JField res = new JField(fieldName, javaClass.getSimpleName());
+	    res = res.addImport(javaClass);
+	    if (column.getType().getIsNullable()) {
+	        res = res.asNullable();
+	    }
+	    return res;
 	}
 	/**
 	 * Get the value of field {@link #column}.<br>

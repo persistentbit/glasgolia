@@ -36,6 +36,7 @@ public class DbMetaDataImporter{
 		}));
 	}
 
+
 	public static DbWork<PList<DbMetaSchema>> getAllSchemas(){
 		return DbWork.function().code(log -> ctx ->
 			getCatalogs().execute(ctx)
@@ -108,6 +109,41 @@ public class DbMetaDataImporter{
 			});
 		}));
 	}
+
+	public static DbWork<PList<DbMetaUDT>> getUDT(DbMetaSchema schema, @Nullable  String typeName, @Nullable int[] sqlTypes){
+		return DbWork.function(schema,typeName).code(log -> ctx -> ctx.get().<PList<DbMetaUDT>>flatMapExc(con -> {
+			Result<PList<DbMetaUDT>> types = UJdbc.getList(con.getMetaData().getUDTs(
+				schema.getCatalog().getName().orElse(""),
+				schema.getName().orElse(""),
+				typeName,
+				sqlTypes
+			), rs -> {
+				String type_cat = rs.getString("TYPE_CAT");
+				String type_schem = rs.getString("TYPE_SCHEM");
+				String type_name = rs.getString("TYPE_NAME");
+				String class_name = rs.getString("CLASS_NAME");
+				int data_type = rs.getInt("DATA_TYPE");
+				String remarks = rs.getString("REMARKS");
+				int base_type = rs.getInt("BASE_TYPE");
+				//String type_cat = rs.getString("TYPE_CAT");
+				//String type_schem = rs.getString("TYPE_SCHEM");
+				//String type_name = rs.getString("TYPE_NAME");
+				//String self_referencing_col_name = rs.getString("SELF_REFERENCING_COL_NAME");
+				//String ref_generation = rs.getString("REF_GENERATION");
+				return DbMetaUDT.build(b -> b
+				   .setSchema(schema)
+				   .setBaseType(base_type)
+				   .setDataType(data_type)
+				   .setJavaClassName(class_name)
+				   .setName(type_name)
+				   .setRemarks(remarks)
+				);
+			});
+			return types;
+		}));
+	}
+
+
 	/*
 	COLUMN_NAME String => column name
 DATA_TYPE int => SQL type from java.sql.Types

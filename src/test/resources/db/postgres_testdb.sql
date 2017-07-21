@@ -5,10 +5,14 @@ drop table if EXISTS array_types_test;
 drop type if EXISTS us_postal_code;
 DROP TYPE IF EXISTS FULL_NAME;
 DROP TYPE IF EXISTS ENUM_TEST;
+DROP TYPE IF EXISTS PUBLIC.ENUM_TEST_IN_PUBLIC_SCHEMA;
 -->>create_all
 -- ************* CREATE ALL ********************
 CREATE TYPE ENUM_TEST AS ENUM ('enumval1', 'enumval2', 'enumval3');
 COMMENT ON TYPE ENUM_TEST IS 'My First enum in Postgres';
+
+CREATE TYPE public.ENUM_TEST_IN_PUBLIC_SCHEMA AS ENUM ('VAL1', 'VAL2', 'VAL3');
+COMMENT ON TYPE PUBLIC.ENUM_TEST_IN_PUBLIC_SCHEMA IS 'My PUBLIC enum in Postgres';
 
 CREATE TYPE FULL_NAME AS (
   first_name VARCHAR(50),
@@ -38,6 +42,7 @@ CREATE TABLE types_test (
   an_int8 int8,
   a_money money,
   an_enum ENUM_TEST,
+  an_enum_in_public PUBLIC.ENUM_TEST_IN_PUBLIC_SCHEMA,
   a_struct FULL_NAME,
   a_domain us_postal_code,
   a_varchar VARCHAR,
@@ -86,6 +91,7 @@ CREATE TABLE array_types_test (
   an_int8 int8[],
   a_money money[],
   an_enum ENUM_TEST[],
+  an_enum_in_public PUBLIC.ENUM_TEST_IN_PUBLIC_SCHEMA[],
   a_struct FULL_NAME[],
   -- a_domain us_postal_code [],
   a_varchar VARCHAR[],

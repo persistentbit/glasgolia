@@ -1,5 +1,6 @@
 package com.persistentbit.glasgolia;
 
+import com.persistentbit.core.collections.PList;
 import com.persistentbit.core.testing.TestCase;
 import com.persistentbit.core.testing.TestRunner;
 import com.persistentbit.glasgolia.jaql.codegen.posgresql.JavaGenTableSelection;
@@ -23,7 +24,7 @@ public class DbJavaGenTest extends AbstractDbTest{
 				 .map(sel -> new PostgresJavaGen(sel,"com.persistentbit.glasgolia.postrgrestest"))
 				 .orElseThrow();
 		tr.info(javaGen.getSelection().show().printToString());
-		javaGen.generate().orElseThrow().forEach(gjf -> tr.info(gjf.getCode().printToString()));
+		javaGen.generate().mapEmpty(empty -> PList.empty()).orElseThrow().forEach(gjf -> tr.info(gjf.getCode().printToString()));
 
 
 		/*PList<DbMetaCatalog> catalogs = tr.add(postgresRun.run(DbMetaDataImporter.getCatalogs())).orElseThrow();

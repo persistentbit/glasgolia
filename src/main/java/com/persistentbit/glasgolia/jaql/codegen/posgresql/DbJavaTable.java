@@ -20,14 +20,16 @@ import com.persistentbit.core.javacodegen.annotations.Generated;
 public class DbJavaTable {
 	private  final	DbMetaTable	table;
 	private  final	PList<DbJavaField>	javaFields;
-	private  final	String	fullJavaName;
+	private  final	String	javaClassName;
+	private  final	String	packName;
 	
 	
 	@Generated
-	public DbJavaTable(DbMetaTable table, PList<DbJavaField> javaFields, String fullJavaName){
+	public DbJavaTable(DbMetaTable table, PList<DbJavaField> javaFields, String javaClassName, String packName){
 			this.table = Objects.requireNonNull(table, "table can not be null");
 			this.javaFields = Objects.requireNonNull(javaFields, "javaFields can not be null");
-			this.fullJavaName = Objects.requireNonNull(fullJavaName, "fullJavaName can not be null");
+			this.javaClassName = Objects.requireNonNull(javaClassName, "javaClassName can not be null");
+			this.packName = Objects.requireNonNull(packName, "packName can not be null");
 	}
 	/**
 	 * Get the value of field {@link #table}.<br>
@@ -44,7 +46,7 @@ public class DbJavaTable {
 	 */
 	@Generated
 	public  DbJavaTable	withTable(DbMetaTable table){
-		return new DbJavaTable(table, javaFields, fullJavaName);
+		return new DbJavaTable(table, javaFields, javaClassName, packName);
 	}
 	/**
 	 * Get the value of field {@link #javaFields}.<br>
@@ -61,24 +63,41 @@ public class DbJavaTable {
 	 */
 	@Generated
 	public  DbJavaTable	withJavaFields(PList<DbJavaField> javaFields){
-		return new DbJavaTable(table, javaFields, fullJavaName);
+		return new DbJavaTable(table, javaFields, javaClassName, packName);
 	}
 	/**
-	 * Get the value of field {@link #fullJavaName}.<br>
-	 * @return {@link #fullJavaName}
+	 * Get the value of field {@link #javaClassName}.<br>
+	 * @return {@link #javaClassName}
 	 */
 	@Generated
-	public  String	getFullJavaName(){
-		return this.fullJavaName;
+	public  String	getJavaClassName(){
+		return this.javaClassName;
 	}
 	/**
-	 * Create a copy of this DbJavaTable object with a new value for field {@link #fullJavaName}.<br>
-	 * @param fullJavaName The new value for field {@link #fullJavaName}
+	 * Create a copy of this DbJavaTable object with a new value for field {@link #javaClassName}.<br>
+	 * @param javaClassName The new value for field {@link #javaClassName}
 	 * @return A new instance of {@link DbJavaTable}
 	 */
 	@Generated
-	public  DbJavaTable	withFullJavaName(String fullJavaName){
-		return new DbJavaTable(table, javaFields, fullJavaName);
+	public  DbJavaTable	withJavaClassName(String javaClassName){
+		return new DbJavaTable(table, javaFields, javaClassName, packName);
+	}
+	/**
+	 * Get the value of field {@link #packName}.<br>
+	 * @return {@link #packName}
+	 */
+	@Generated
+	public  String	getPackName(){
+		return this.packName;
+	}
+	/**
+	 * Create a copy of this DbJavaTable object with a new value for field {@link #packName}.<br>
+	 * @param packName The new value for field {@link #packName}
+	 * @return A new instance of {@link DbJavaTable}
+	 */
+	@Generated
+	public  DbJavaTable	withPackName(String packName){
+		return new DbJavaTable(table, javaFields, javaClassName, packName);
 	}
 	@Generated
 	@Override
@@ -88,7 +107,8 @@ public class DbJavaTable {
 		DbJavaTable obj = (DbJavaTable)o;
 		if(!table.equals(obj.table)) return false;
 		if(!javaFields.equals(obj.javaFields)) return false;
-		if(!fullJavaName.equals(obj.fullJavaName)) return false;
+		if(!javaClassName.equals(obj.javaClassName)) return false;
+		if(!packName.equals(obj.packName)) return false;
 		return true;
 	}
 	@Generated
@@ -97,7 +117,8 @@ public class DbJavaTable {
 		int result;
 		result = (this.table != null ? this.table.hashCode() : 0);
 		result = 31 * result + (this.javaFields != null ? this.javaFields.hashCode() : 0);
-		result = 31 * result + (this.fullJavaName != null ? this.fullJavaName.hashCode() : 0);
+		result = 31 * result + (this.javaClassName != null ? this.javaClassName.hashCode() : 0);
+		result = 31 * result + (this.packName != null ? this.packName.hashCode() : 0);
 		return result;
 	}
 	@Generated
@@ -106,7 +127,8 @@ public class DbJavaTable {
 		return "DbJavaTable[" + 
 			"table=" + table + 
 			", javaFields=" + javaFields + 
-			", fullJavaName=" + (fullJavaName == null ? "null" : '\"' + UString.present(UString.escapeToJavaString(fullJavaName),32,"...") + '\"') +
+			", javaClassName=" + (javaClassName == null ? "null" : '\"' + UString.present(UString.escapeToJavaString(javaClassName),32,"...") + '\"') +
+			", packName=" + (packName == null ? "null" : '\"' + UString.present(UString.escapeToJavaString(packName),32,"...") + '\"') +
 			']';
 	}
 }
