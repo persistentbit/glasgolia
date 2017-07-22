@@ -1,5 +1,6 @@
 package com.persistentbit.glasgolia.jaql.codegen.posgresql;
 
+import com.persistentbit.core.collections.PList;
 import com.persistentbit.core.javacodegen.JField;
 
 /**
@@ -11,4 +12,10 @@ import com.persistentbit.core.javacodegen.JField;
 
 public interface DbJavaField{
 	JField createJField();
+	default PList<DbJavaFieldEnum> getUsedEnums() {
+		return PList.empty();
+	}
+	default PList<DbJavaFieldStruct> getStructures() {
+		return PList.empty();
+	}
 }

@@ -1,6 +1,7 @@
 package com.persistentbit.glasgolia.jaql.codegen.posgresql;
 
 import com.persistentbit.core.Nullable;
+import com.persistentbit.core.collections.PList;
 import com.persistentbit.core.javacodegen.JField;
 import com.persistentbit.core.javacodegen.JImport;
 import com.persistentbit.core.javacodegen.annotations.CaseClass;
@@ -44,6 +45,12 @@ public class DbJavaFieldEnum implements DbJavaField {
 		f = f.addImport(new JImport(enumPack + "." + enumClassName));
 	    return f;
 	}
+
+	@Override
+	public PList<DbJavaFieldEnum> getUsedEnums() {
+		return PList.val(this);
+	}
+
 	/**
 	 * Get the value of field {@link #column}.<br>
 	 * @return {@link #column}

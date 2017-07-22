@@ -2,6 +2,9 @@
 -- *************  DROP ALL  ********************
 DROP TABLE IF EXISTS types_test;
 drop table if EXISTS array_types_test;
+drop type if EXISTS person;
+drop type if EXISTS  address;
+drop type if EXISTS  country_code;
 drop type if EXISTS us_postal_code;
 DROP TYPE IF EXISTS FULL_NAME;
 DROP TYPE IF EXISTS ENUM_TEST;
@@ -25,8 +28,23 @@ CREATE DOMAIN us_postal_code AS TEXT
     OR VALUE ~ '^\d{5}-\d{4}$'
   );
 
+CREATE DOMAIN country_code as VARCHAR(2);
+
+CREATE TYPE address AS (
+  street VARCHAR(256),
+  city VARCHAR(256),
+  postal_code us_postal_code,
+  country country_code
+);
+
+CREATE type person as (
+  name FULL_NAME,
+  home_address address
+);
+
 CREATE TABLE types_test (
   id BIGSERIAL PRIMARY KEY,
+  aPerson person not null,
   ser_small SMALLSERIAL,
   ser SERIAL,
   ser_big BIGSERIAL,

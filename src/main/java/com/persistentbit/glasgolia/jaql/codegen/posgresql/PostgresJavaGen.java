@@ -1,9 +1,6 @@
 package com.persistentbit.glasgolia.jaql.codegen.posgresql;
 
-import com.persistentbit.core.collections.PBitList;
-import com.persistentbit.core.collections.PByteList;
-import com.persistentbit.core.collections.PList;
-import com.persistentbit.core.collections.PMap;
+import com.persistentbit.core.collections.*;
 import com.persistentbit.core.exceptions.ToDo;
 import com.persistentbit.core.javacodegen.GeneratedJavaSource;
 import com.persistentbit.core.javacodegen.JClass;
@@ -63,7 +60,11 @@ public class PostgresJavaGen{
 		PList<DbCustomType> customTypes = selection
 			.getSchemas()
 			.map(schema -> DbMetaDataImporter.getTypes(schema).transaction(run).orElseThrow()
-				 .map(metaTable -> new DbCustomType(metaTable,nameTransformer.toJavaName(metaTable),PList.empty()))
+				 .map(metaTable -> new DbCustomType(
+				 	metaTable
+				 	//metaTable.withColumns(metaTable.getColumns().map(col -> col.withType(col.getType().withIsNullable(false))))
+
+					 ,nameTransformer.toJavaName(metaTable),PList.empty()))
 			)
 			.<DbCustomType>flatten()
 			.plist();
@@ -76,12 +77,54 @@ public class PostgresJavaGen{
 		udts.forEach(udt -> {
 			System.out.println("UDT: " + udt);
 		});
+
+		PList<DbCustomType> customTypesWithFields = customTypes.map(dbCustomType -> {
+			DbMetaTable ctTable = dbCustomType.getDefinition();
+			DbCustomType res = dbCustomType;
+			for(DbMetaColumn col : res.getDefinition().getColumns()){
+				DbJavaField newField = getDbJavaField(ctTable,col.withType(col.getType().withIsNullable(false)),customTypes,enumTypes,udts);
+				res = res.withFields(res.getFields().plus(newField));
+			}
+			return res;
+		});
+
+
+
+
 		PList<DbJavaTable> javaTables = tables.map(table -> generateJavaTable(table,customTypes,enumTypes,udts));
 		//System.out.println( selection.getSchemas().map(schema ->
 		//	   DbMetaDataImporter.getTypes(schema).transaction(run)));
 
+		// FIND USED STRUCTURES
+		PSet<DbCustomType> usedTypes = PSet.empty();
+		for(DbJavaTable table : javaTables){
+			for(DbJavaField field : table.getJavaFields()){
+				for(DbJavaFieldStruct structField : field.getStructures()){
+					usedTypes = usedTypes.plus(
+						customTypesWithFields.find(ct -> ct.getDefinition().equals(structField.getCustomTypeDbMeta())).get()
+					);
+				}
+			}
+		}
+		for(DbCustomType ct : customTypesWithFields){
+			for(DbJavaField field : ct.getFields()){
+				for(DbJavaFieldStruct structField : field.getStructures()){
+					usedTypes = usedTypes.plus(
+						customTypesWithFields.find(uct -> uct.getDefinition().equals(structField.getCustomTypeDbMeta())).get()
+					);
+				}
+			}
+		}
+		System.out.println("USED CUSTOM TYPES: " + usedTypes.map(ut-> ut.getJavaClassName()).toString(", "));
 
-		return Result.fromSequence(javaTables.map(table -> generateStateClass(table))).map(stream -> stream.plist());
+		//CREATE STATE CLASSES SOURCE CODE
+
+		Result<PList<GeneratedJavaSource>> genSourceCustomTypes = Result.fromSequence(usedTypes.map(ct -> generateStateClass(ct))).map(stream -> stream.plist());
+		Result<PList<GeneratedJavaSource>> genSourceTables = Result.fromSequence(javaTables.map(table -> generateStateClass(table))).map(stream -> stream.plist());
+
+		return genSourceCustomTypes.flatMap( ct -> genSourceTables.map(t ->
+			t.plusAll(ct)
+		));
 	}
 
 	private DbWork<PList<DbEnumType>> loadEnumTypes(PList<DbMetaSchema> allSchemas){
@@ -158,6 +201,23 @@ public class PostgresJavaGen{
 			+ "." + nameTransformer.toJavaName(table.getSchema().getCatalog())
 			+ "." + nameTransformer.toJavaName(table.getSchema());
 		return new DbJavaTable(table,fields, javaClassName,packName);
+	}
+
+	private Result<GeneratedJavaSource> generateStateClass(DbCustomType customType){
+		return Result.function(customType).code(l -> {
+			JClass cls = new JClass(customType.getJavaClassName());
+			for(DbJavaField field : customType.getFields()){
+				cls = cls.addField(field.createJField());
+			}
+			cls = cls.makeCaseClass();
+
+
+
+
+			JJavaFile file = new JJavaFile(toJavaPackage(customType.getDefinition().getSchema()))
+				.addClass(cls);
+			return Result.success(file.toJavaSource());
+		});
 	}
 
 	private Result<GeneratedJavaSource> generateStateClass(DbJavaTable table){

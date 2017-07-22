@@ -45,6 +45,17 @@ public class DbJavaFieldArray implements DbJavaField {
 	    f = f.addImport(PList.class);
 	    return f;
 	}
+
+	@Override
+	public PList<DbJavaFieldStruct> getStructures() {
+		return elementField.getStructures();
+	}
+
+	@Override
+	public PList<DbJavaFieldEnum> getUsedEnums() {
+		return elementField.getUsedEnums();
+	}
+
 	/**
 	 * Get the value of field {@link #column}.<br>
 	 * @return {@link #column}
