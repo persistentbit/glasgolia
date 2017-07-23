@@ -18,4 +18,7 @@ public interface DbJavaField{
 	default PList<DbJavaFieldStruct> getStructures() {
 		return PList.empty();
 	}
+	default PList<DbJavaFieldDomain> getDomains(){
+		return PList.empty();
+	}
 }

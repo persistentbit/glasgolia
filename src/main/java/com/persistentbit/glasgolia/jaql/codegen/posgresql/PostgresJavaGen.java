@@ -138,21 +138,43 @@ public class PostgresJavaGen implements DbJavaGen{
 		}
 		System.out.println("USED ENUMS: " + usedEnums.map(ue-> ue.getName()).toString(", "));
 
-		//CREATE ENUM SOURCE CODE
+		//FIND USED DOMAINS...
+		PSet<DbMetaUDT> usedDomains = PSet.empty();
+		for(DbJavaTable table : javaTables){
+			for(DbJavaField field : table.getJavaFields()){
+				for(DbJavaFieldDomain element : field.getDomains()){
+					usedDomains = usedDomains.plus(
+						element.getUdtMeta()
+					);
+				}
+			}
+		}
+		for(DbCustomType customType : usedTypes){
+			for(DbJavaField field : customType.getFields()){
+				for(DbJavaFieldDomain element : field.getDomains()){
+					usedDomains = usedDomains.plus(
+						element.getUdtMeta()
+					);
+				}
+			}
+		}
+		System.out.println("USED DOMAINS: " + usedDomains.map(ud -> ud.getName()).toString(", "));
+
+		//CREATE STATE CLASSES SOURCE CODE
 		Result<PList<GeneratedJavaSource>> genSourceEnums = Result.fromSequence(
 			usedEnums.map(ue -> generateEnumSource(ue))
 		).map(stream -> stream.plist());
 
-		//CREATE STATE CLASSES SOURCE CODE
 
 		Result<PList<GeneratedJavaSource>> genSourceCustomTypes = Result.fromSequence(usedTypes.map(ct -> generateStateClass(ct))).map(stream -> stream.plist());
 		Result<PList<GeneratedJavaSource>> genSourceTables = Result.fromSequence(javaTables.map(table -> generateStateClass(table))).map(stream -> stream.plist());
+		Result<PList<GeneratedJavaSource>> genSourceDomains = Result.fromSequence(usedDomains.map(ud -> generateDomainSource(ud))).map(stream -> stream.plist());
 
-		return genSourceCustomTypes.flatMap( ct ->
-			genSourceEnums.flatMap(et -> genSourceTables.map(t ->
-																 t.plusAll(ct).plusAll(et))
-
-		));
+		Result<PList<GeneratedJavaSource>> result =
+			genSourceEnums.flatMap(res -> genSourceCustomTypes.map(ct -> res.plusAll(ct)));
+		result = result.flatMap(res -> genSourceTables.map(sec -> res.plusAll(sec)));
+		result = result.flatMap(res -> genSourceDomains.map(sec -> res.plusAll(sec)));
+		return result;
 	}
 
 	private DbWork<PList<DbEnumType>> loadEnumTypes(PList<DbMetaSchema> allSchemas){
@@ -235,9 +257,83 @@ public class PostgresJavaGen implements DbJavaGen{
 		return Result.function(udt).code(l -> {
 			JClass cls = new JClass(nameTransformer.toJavaName(udt.getName()));
 			JField field = null;
-
-			if(true) throw new ToDo();
-
+			String fname = "value";
+			switch(udt.getBaseType()){
+				case Types.BLOB:
+				case Types.BINARY:
+				case Types.LONGVARBINARY:
+				case Types.VARBINARY:
+					field = new JField(fname,PByteList.class);
+					break;
+				case Types.BOOLEAN:
+					field = new JField(fname,Boolean.class);
+					break;
+				case Types.BIGINT:
+					field = new JField(fname,Long.class);
+					break;
+				case Types.BIT:
+					field = new JField(fname,PBitList.class);
+					break;
+				case Types.CHAR:
+				case Types.CLOB:
+				case Types.LONGNVARCHAR:
+				case Types.NCHAR:
+				case Types.NCLOB:
+				case Types.NVARCHAR:
+				case Types.VARCHAR:
+				case Types.LONGVARCHAR:
+					field = new JField(fname,String.class);
+					break;
+				case Types.DATE:
+					field = new JField(fname,LocalDate.class);
+					break;
+				case Types.NUMERIC:
+				case Types.DECIMAL:
+					field = new JField(fname,BigDecimal.class);
+					break;
+				case Types.DOUBLE:
+					field = new JField(fname,Double.class);
+					break;
+				case Types.REAL:
+				case Types.FLOAT:
+					field = new JField(fname,Float.class);
+					break;
+				case Types.INTEGER:
+					field = new JField(fname,Integer.class);
+					break;
+				case Types.SMALLINT:
+					field = new JField(fname, Byte.class);
+					break;
+				case Types.SQLXML:
+					field = new JField(fname, Xml.class);
+					break;
+				case Types.TIME:
+					field = new JField(fname,LocalTime.class);
+					break;
+				case Types.TIMESTAMP:
+					field = new JField(fname,LocalDateTime.class);
+					break;
+				case Types.TINYINT:
+					field = new JField(fname,Byte.class);
+					break;
+				case Types.OTHER:
+					field = new JField(fname,Object.class);
+					break;
+				case Types.JAVA_OBJECT:
+				case Types.DISTINCT:
+				case Types.ARRAY:
+				case Types.STRUCT:
+				case Types.DATALINK:
+				case Types.NULL:
+				case Types.REF:
+				case Types.REF_CURSOR:
+				case Types.ROWID:
+				case Types.TIME_WITH_TIMEZONE:
+				case Types.TIMESTAMP_WITH_TIMEZONE:
+				default:
+					return Result.failure("Can't convert domain: " + udt);
+			}
+			field = field.asNullable();
 			cls = cls.addField(field);
 			cls = cls.addMainConstructor(AccessLevel.Public);
 			cls = cls.addMethod(field.createGetter());

@@ -4,6 +4,7 @@ DROP TABLE IF EXISTS types_test;
 drop table if EXISTS array_types_test;
 drop type if EXISTS person;
 drop type if EXISTS  address;
+drop type if EXISTS test_domain_interval;
 drop type if EXISTS  country_code;
 drop type if EXISTS us_postal_code;
 DROP TYPE IF EXISTS FULL_NAME;
@@ -33,6 +34,8 @@ CREATE DOMAIN us_postal_code AS TEXT
   );
 
 CREATE DOMAIN country_code as VARCHAR(2);
+
+CREATE DOMAIN test_domain_interval as INTERVAL;
 
 CREATE TYPE address AS (
   street VARCHAR(256),
@@ -91,9 +94,9 @@ CREATE TABLE types_test (
   a_tsvector tsvector,
   a_tsquery tsquery,
   an_uuid uuid,
+  a_test_domain_interval test_domain_interval,
   an_xml xml,
   a_json json
-
 );
 
 
