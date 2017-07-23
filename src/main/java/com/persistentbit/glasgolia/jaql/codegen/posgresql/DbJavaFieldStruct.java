@@ -3,15 +3,14 @@ package com.persistentbit.glasgolia.jaql.codegen.posgresql;
 import com.persistentbit.core.Nullable;
 import com.persistentbit.core.collections.PList;
 import com.persistentbit.core.javacodegen.JField;
-import com.persistentbit.core.javacodegen.JImport;
 import com.persistentbit.core.javacodegen.annotations.CaseClass;
-import com.persistentbit.core.javacodegen.annotations.Generated;
-import com.persistentbit.core.javacodegen.annotations.NoBuilder;
-import com.persistentbit.core.utils.UString;
 import com.persistentbit.glasgolia.db.dbdef.DbMetaColumn;
 import com.persistentbit.glasgolia.db.dbdef.DbMetaTable;
-
+import com.persistentbit.core.utils.UString;
+import com.persistentbit.core.javacodegen.annotations.NoBuilder;
+import com.persistentbit.core.javacodegen.JImport;
 import java.util.Objects;
+import com.persistentbit.core.javacodegen.annotations.Generated;
 
 /**
  * TODOC
@@ -43,12 +42,10 @@ public class DbJavaFieldStruct implements DbJavaField {
 	    res = res.addImport(new JImport(javaPackageName + "." + javaClassName));
 	    return res;
 	}
-
 	@Override
-	public PList<DbJavaFieldStruct> getStructures() {
-		return PList.val(this);
+	public  PList<DbJavaFieldStruct>	getStructures(){
+	    return PList.val(this);
 	}
-
 	/**
 	 * Get the value of field {@link #column}.<br>
 	 * @return {@link #column}

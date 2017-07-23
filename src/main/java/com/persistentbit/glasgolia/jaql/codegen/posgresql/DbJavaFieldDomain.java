@@ -2,15 +2,14 @@ package com.persistentbit.glasgolia.jaql.codegen.posgresql;
 
 import com.persistentbit.core.Nullable;
 import com.persistentbit.core.javacodegen.JField;
-import com.persistentbit.core.javacodegen.JImport;
 import com.persistentbit.core.javacodegen.annotations.CaseClass;
-import com.persistentbit.core.javacodegen.annotations.Generated;
-import com.persistentbit.core.javacodegen.annotations.NoBuilder;
-import com.persistentbit.core.utils.UString;
 import com.persistentbit.glasgolia.db.dbdef.DbMetaColumn;
+import com.persistentbit.core.utils.UString;
+import com.persistentbit.core.javacodegen.annotations.NoBuilder;
 import com.persistentbit.glasgolia.db.dbdef.DbMetaUDT;
-
+import com.persistentbit.core.javacodegen.JImport;
 import java.util.Objects;
+import com.persistentbit.core.javacodegen.annotations.Generated;
 
 /**
  * TODOC

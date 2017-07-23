@@ -3,14 +3,13 @@ package com.persistentbit.glasgolia.jaql.codegen.posgresql;
 import com.persistentbit.core.Nullable;
 import com.persistentbit.core.collections.PList;
 import com.persistentbit.core.javacodegen.JField;
-import com.persistentbit.core.javacodegen.JImport;
 import com.persistentbit.core.javacodegen.annotations.CaseClass;
-import com.persistentbit.core.javacodegen.annotations.Generated;
-import com.persistentbit.core.javacodegen.annotations.NoBuilder;
-import com.persistentbit.core.utils.UString;
 import com.persistentbit.glasgolia.db.dbdef.DbMetaColumn;
-
+import com.persistentbit.core.utils.UString;
+import com.persistentbit.core.javacodegen.annotations.NoBuilder;
+import com.persistentbit.core.javacodegen.JImport;
 import java.util.Objects;
+import com.persistentbit.core.javacodegen.annotations.Generated;
 
 /**
  * TODOC
@@ -38,19 +37,17 @@ public class DbJavaFieldEnum implements DbJavaField {
 	}
 	@Override
 	public  JField	createJField(){
-		JField f = new JField(fieldName, enumClassName);
-		if(column.getType().getIsNullable()){
-			f = f.asNullable();
-		}
-		f = f.addImport(new JImport(enumPack + "." + enumClassName));
+	    JField f = new JField(fieldName, enumClassName);
+	    if (column.getType().getIsNullable()) {
+	        f = f.asNullable();
+	    }
+	    f = f.addImport(new JImport(enumPack + "." + enumClassName));
 	    return f;
 	}
-
 	@Override
-	public PList<DbJavaFieldEnum> getUsedEnums() {
-		return PList.val(this);
+	public  PList<DbJavaFieldEnum>	getUsedEnums(){
+	    return PList.val(this);
 	}
-
 	/**
 	 * Get the value of field {@link #column}.<br>
 	 * @return {@link #column}

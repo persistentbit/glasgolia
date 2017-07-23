@@ -13,13 +13,14 @@ public class DbPostgres extends AbstractDbType{
 
 	public static final DbPostgres inst = new DbPostgres();
 
+	public static final String databaseName = "PostgreSQL";
 	/**
 	 * The default tcp/ip connection port
 	 */
 	public static final int defaultPort = 5432;
 
 	private DbPostgres() {
-		super("PostgreSQL");
+		super(databaseName);
 	}
 
 	/**

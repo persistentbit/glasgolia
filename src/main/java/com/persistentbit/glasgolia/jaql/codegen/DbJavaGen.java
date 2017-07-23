@@ -1,6 +1,15 @@
 package com.persistentbit.glasgolia.jaql.codegen;
 
 
+import com.persistentbit.core.collections.PList;
+import com.persistentbit.core.javacodegen.GeneratedJavaSource;
+import com.persistentbit.core.result.Result;
+import com.persistentbit.glasgolia.db.connections.DbConnector;
+import com.persistentbit.glasgolia.db.types.DbPostgres;
+import com.persistentbit.glasgolia.db.types.DbType;
+import com.persistentbit.glasgolia.db.types.DbTypeRegistry;
+import com.persistentbit.glasgolia.jaql.codegen.posgresql.PostgresJavaGen;
+
 /**
  * Generate Java code for a Database Substema
  *
@@ -10,6 +19,20 @@ package com.persistentbit.glasgolia.jaql.codegen;
 public  interface DbJavaGen{
 
 
+	static Result<DbJavaGen> createGenerator(DbConnector connector, DbJavaGenOptions options){
+		return DbTypeRegistry.defaultInst.getDbType(connector)
+			.flatMap(dbType -> createGenerator(dbType, connector,options));
+	}
+	static Result<DbJavaGen> createGenerator(DbType dbType, DbConnector connector,DbJavaGenOptions options){
+		return Result.function(dbType).code(l -> {
+			if(dbType instanceof DbPostgres){
+				return Result.success(new PostgresJavaGen(options.getSelection(),options.getRootPackage(),options.getNameTransformer()));
+			}
+			return Result.failure("Can't generate java code for database type " + dbType);
+		});
+	}
+
+	Result<PList<GeneratedJavaSource>>	generate();
 
 	/*static public Result<GeneratedJavaSource> generateStateClasses(DbJavaGenOptions options, DbMetaSchema schema, DbMetaTable table){
 		JClass cls = new JClass(options.javaName(table));

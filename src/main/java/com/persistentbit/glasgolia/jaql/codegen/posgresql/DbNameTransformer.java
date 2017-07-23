@@ -2,16 +2,17 @@ package com.persistentbit.glasgolia.jaql.codegen.posgresql;
 
 import com.persistentbit.core.Nullable;
 import com.persistentbit.core.javacodegen.annotations.CaseClass;
-import com.persistentbit.glasgolia.db.dbdef.DbMetaColumn;
-import com.persistentbit.glasgolia.db.dbdef.DbMetaTable;
-import com.persistentbit.core.utils.UString;
-import com.persistentbit.core.javacodegen.annotations.NoBuilder;
-import java.util.function.BiFunction;
-import java.util.Objects;
 import com.persistentbit.core.javacodegen.annotations.Generated;
-import java.util.function.Function;
+import com.persistentbit.core.javacodegen.annotations.NoBuilder;
+import com.persistentbit.core.utils.UString;
 import com.persistentbit.glasgolia.db.dbdef.DbMetaCatalog;
+import com.persistentbit.glasgolia.db.dbdef.DbMetaColumn;
 import com.persistentbit.glasgolia.db.dbdef.DbMetaSchema;
+import com.persistentbit.glasgolia.db.dbdef.DbMetaTable;
+
+import java.util.Objects;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * TODOC
@@ -30,7 +31,10 @@ public class DbNameTransformer {
 	
 	
 	public DbNameTransformer(Function<String,String> generalDbNameToJava){
-	    this(cat -> generalDbNameToJava.apply(cat.getName().orElse("catalog")).toLowerCase(), schema -> generalDbNameToJava.apply(schema.getName().orElse("schema")).toLowerCase(), table -> generalDbNameToJava.apply(table.getName()), (tab, col) -> UString.firstLowerCase(generalDbNameToJava.apply(col.getName())), generalDbNameToJava);
+	    this(
+	    	cat -> "c_" + generalDbNameToJava.apply(cat.getName().orElse("catalog")).toLowerCase(),
+			schema -> "s_" + generalDbNameToJava.apply(schema.getName().orElse("schema")).toLowerCase(),
+			table -> generalDbNameToJava.apply(table.getName()), (tab, col) -> UString.firstLowerCase(generalDbNameToJava.apply(col.getName())), generalDbNameToJava);
 	}
 	@Generated
 	public DbNameTransformer(Function<DbMetaCatalog,String> catalogNameToJava, Function<DbMetaSchema,String> schemaNameToJava, Function<DbMetaTable,String> tableNameToJava, BiFunction<DbMetaTable,DbMetaColumn,String> columNameToJava, Function<String,String> customTypeNameToJava){

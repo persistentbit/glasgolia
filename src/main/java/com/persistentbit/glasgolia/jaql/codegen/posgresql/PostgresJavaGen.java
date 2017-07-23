@@ -9,6 +9,7 @@ import com.persistentbit.core.utils.UString;
 import com.persistentbit.glasgolia.db.dbdef.*;
 import com.persistentbit.glasgolia.db.work.DbRun;
 import com.persistentbit.glasgolia.db.work.DbWork;
+import com.persistentbit.glasgolia.jaql.codegen.DbJavaGen;
 import com.persistentbit.glasgolia.jaql.customtypes.*;
 
 import java.math.BigDecimal;
@@ -26,7 +27,7 @@ import java.util.UUID;
  * @author petermuys
  * @since 11/07/17
  */
-public class PostgresJavaGen{
+public class PostgresJavaGen implements DbJavaGen{
 	private final JavaGenTableSelection	selection;
 	private final DbNameTransformer	nameTransformer;
 	private final DbRun run;
