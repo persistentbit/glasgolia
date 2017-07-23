@@ -2,11 +2,9 @@ package com.persistentbit.glasgolia.jaql.codegen.posgresql;
 
 import com.persistentbit.core.collections.*;
 import com.persistentbit.core.exceptions.ToDo;
-import com.persistentbit.core.javacodegen.GeneratedJavaSource;
-import com.persistentbit.core.javacodegen.JClass;
-import com.persistentbit.core.javacodegen.JField;
-import com.persistentbit.core.javacodegen.JJavaFile;
+import com.persistentbit.core.javacodegen.*;
 import com.persistentbit.core.result.Result;
+import com.persistentbit.core.tuples.Tuple2;
 import com.persistentbit.core.utils.UString;
 import com.persistentbit.glasgolia.db.dbdef.*;
 import com.persistentbit.glasgolia.db.work.DbRun;
@@ -92,8 +90,8 @@ public class PostgresJavaGen{
 
 
 		PList<DbJavaTable> javaTables = tables.map(table -> generateJavaTable(table,customTypes,enumTypes,udts));
-		//System.out.println( selection.getSchemas().map(schema ->
-		//	   DbMetaDataImporter.getTypes(schema).transaction(run)));
+
+
 
 		// FIND USED STRUCTURES
 		PSet<DbCustomType> usedTypes = PSet.empty();
@@ -117,13 +115,42 @@ public class PostgresJavaGen{
 		}
 		System.out.println("USED CUSTOM TYPES: " + usedTypes.map(ut-> ut.getJavaClassName()).toString(", "));
 
+		//FIND USED ENUMS
+		PSet<DbEnumType> usedEnums = PSet.empty();
+		for(DbJavaTable table : javaTables){
+			for(DbJavaField field : table.getJavaFields()){
+				for(DbJavaFieldEnum enumField : field.getUsedEnums()){
+					usedEnums = usedEnums.plus(
+						enumTypes.find(et -> enumField.getEnumType().equals(et)).get()
+					);
+				}
+			}
+		}
+		for(DbCustomType ct : usedTypes){
+			for(DbJavaField field : ct.getFields()){
+				for(DbJavaFieldEnum enumField : field.getUsedEnums()){
+					usedEnums = usedEnums.plus(
+						enumTypes.find(et -> enumField.getEnumType().equals(et)).get()
+					);
+				}
+			}
+		}
+		System.out.println("USED ENUMS: " + usedEnums.map(ue-> ue.getName()).toString(", "));
+
+		//CREATE ENUM SOURCE CODE
+		Result<PList<GeneratedJavaSource>> genSourceEnums = Result.fromSequence(
+			usedEnums.map(ue -> generateEnumSource(ue))
+		).map(stream -> stream.plist());
+
 		//CREATE STATE CLASSES SOURCE CODE
 
 		Result<PList<GeneratedJavaSource>> genSourceCustomTypes = Result.fromSequence(usedTypes.map(ct -> generateStateClass(ct))).map(stream -> stream.plist());
 		Result<PList<GeneratedJavaSource>> genSourceTables = Result.fromSequence(javaTables.map(table -> generateStateClass(table))).map(stream -> stream.plist());
 
-		return genSourceCustomTypes.flatMap( ct -> genSourceTables.map(t ->
-			t.plusAll(ct)
+		return genSourceCustomTypes.flatMap( ct ->
+			genSourceEnums.flatMap(et -> genSourceTables.map(t ->
+																 t.plusAll(ct).plusAll(et))
+
 		));
 	}
 
@@ -201,6 +228,46 @@ public class PostgresJavaGen{
 			+ "." + nameTransformer.toJavaName(table.getSchema().getCatalog())
 			+ "." + nameTransformer.toJavaName(table.getSchema());
 		return new DbJavaTable(table,fields, javaClassName,packName);
+	}
+
+	private Result<GeneratedJavaSource> generateDomainSource(DbMetaUDT udt){
+		return Result.function(udt).code(l -> {
+			JClass cls = new JClass(nameTransformer.toJavaName(udt.getName()));
+			JField field = null;
+
+			if(true) throw new ToDo();
+
+			cls = cls.addField(field);
+			cls = cls.addMainConstructor(AccessLevel.Public);
+			cls = cls.addMethod(field.createGetter());
+			JJavaFile file = new JJavaFile(toJavaPackage(udt.getSchema()))
+				.addClass(cls);
+			return Result.success(file.toJavaSource());
+		});
+	}
+
+	private Result<GeneratedJavaSource> generateEnumSource(DbEnumType enumType){
+		return Result.function(enumType).code(l-> {
+			JClass cls = new JClass(enumType.getJavaClassName());
+			JField dbValue = new JField("dbValue",String.class)
+				.notFinal();
+			cls = cls.addField(dbValue);
+			cls = cls.addMainConstructor(AccessLevel.Private);
+			cls = cls.addRequiredFieldsConstructor(AccessLevel.Private);
+			cls = cls.addMethod(dbValue.createGetter());
+
+
+			JEnum j = new JEnum(cls,PList.empty());
+
+
+
+			for(Tuple2<String,String> dbAndJava : enumType.getValueAndJavaNameList()){
+				j = j.addInstance(new JEnumInstance(dbAndJava._2,PList.val("\"" +UString.escapeToJavaString(dbAndJava._1) + "\"" )));
+			}
+			JJavaFile file = new JJavaFile(toJavaPackage(enumType.getSchema()))
+				.addEnum(j);
+			return Result.success(file.toJavaSource());
+		});
 	}
 
 	private Result<GeneratedJavaSource> generateStateClass(DbCustomType customType){

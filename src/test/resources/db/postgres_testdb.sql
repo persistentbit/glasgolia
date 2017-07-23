@@ -7,11 +7,15 @@ drop type if EXISTS  address;
 drop type if EXISTS  country_code;
 drop type if EXISTS us_postal_code;
 DROP TYPE IF EXISTS FULL_NAME;
+drop type if EXISTS address_type;
+drop type if EXISTS unused_enum;
 DROP TYPE IF EXISTS ENUM_TEST;
 DROP TYPE IF EXISTS PUBLIC.ENUM_TEST_IN_PUBLIC_SCHEMA;
 -->>create_all
 -- ************* CREATE ALL ********************
 CREATE TYPE ENUM_TEST AS ENUM ('enumval1', 'enumval2', 'enumval3');
+create type unused_enum as ENUM ('unusedval1');
+create type address_type as enum('WORK','HOME');
 COMMENT ON TYPE ENUM_TEST IS 'My First enum in Postgres';
 
 CREATE TYPE public.ENUM_TEST_IN_PUBLIC_SCHEMA AS ENUM ('VAL1', 'VAL2', 'VAL3');
@@ -34,7 +38,8 @@ CREATE TYPE address AS (
   street VARCHAR(256),
   city VARCHAR(256),
   postal_code us_postal_code,
-  country country_code
+  country country_code,
+  theType address_type
 );
 
 CREATE type person as (
